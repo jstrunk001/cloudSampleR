@@ -1,4 +1,4 @@
-(Preferred) Automatically install package from github (windows) use RTools:
+(Preferred) Automatically install package from github (on Windows) use RTools:
 
 **Windows**: [Rtools.exe](https://cran.r-project.org/bin/windows/Rtools/). 
 
@@ -7,6 +7,8 @@ Install the latest version from github with devtools.
 ```r
 devtools::install_github("jstrunk001/CloudSampleR")
 ```
+
+
 
 Manual way to install this package:
 
