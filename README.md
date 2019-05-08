@@ -4,7 +4,7 @@ Download this git repository to a local directory, zip the repository (file fold
 
 Automatically install package from github (windows) use RTools:
 
-**Windows**: Install [Rtools.exe](https://cran.r-project.org/bin/windows/Rtools/). 
+**Windows**: [Rtools.exe](https://cran.r-project.org/bin/windows/Rtools/). 
 
 # cloudSampleR
 Install the latest version from github with devtools. 
