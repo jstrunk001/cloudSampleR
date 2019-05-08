@@ -1,0 +1,24 @@
+Package: cloudSampleR
+Type: Package
+Title: Clip plots from multiple point cloud projects (.laz or .las) - commonly lidar or DAP
+Version: 0.1.0
+Author: Jacob Strunk
+Maintainer: The package maintainer <jacob.strunk@usda.org>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL
+Encoding: UTF-8
+LazyData: true
+Depends: 
+	lidR
+	,rgdal
+	,sp
+	,raster
+	,rgeos
+Imports: 
+	lidR
+	,rgdal
+	,sp
+	,raster
+	,rgeos
+RoxygenNote: 6.0.1
