@@ -1,6 +1,7 @@
-#install packages (only run 1 time)
+#install packages (only run 1 time, or when package is updated)
 if(F){
 
+	devtools::install_github("jstrunk001/CloudSampleR")
 
 }
 
