@@ -297,12 +297,12 @@ cloud2xSample=function(
       lidR::opt_cores(ctgA) <- nCore
       lidR::opt_output_files(ctgA) <- paste0(pathsOutA_in[1], "/clip_{ID}")
 
-      if(sampleShape == "circle") ctgA_clip1 = lidR::lasclipCircle(ctgA,sInA@coords[1:20,1],sInA@coords[1:20,2],radii_in[1])
+      if(sampleShape == "circle") ctgA_clip1 = lidR::lasclipCircle(ctgA,sInA@coords[,1],sInA@coords[,2],radii_in[1])
       if(sampleShape == "square") ctgA_clip1 = lidR::lasclipRectangle(ctgA
-                                                                      , sInA@coords[1:20,1] - radii_in[1]
-                                                                      , sInA@coords[1:20,2] - radii_in[1]
-                                                                      , sInA@coords[1:20,1] + radii_in[1]
-                                                                      , sInA@coords[1:20,2] + radii_in[1]
+                                                                      , sInA@coords[,1] - radii_in[1]
+                                                                      , sInA@coords[,2] - radii_in[1]
+                                                                      , sInA@coords[,1] + radii_in[1]
+                                                                      , sInA@coords[,2] + radii_in[1]
                                                                       )
 
       closeAllConnections()
@@ -318,12 +318,12 @@ cloud2xSample=function(
           plot(ctgA_clip1)
           lidR::opt_output_files(ctgA_clip1) <- paste0(pathsOutA_in[i], "/clip_{ID}")
 
-          if(sampleShape == "circle") lCtgs[[i]] = lidR::lasclipCircle(ctgA_clip1,sInA@coords[1:20,1],sInA@coords[1:20,2],radii_in[i])
+          if(sampleShape == "circle") lCtgs[[i]] = lidR::lasclipCircle(ctgA_clip1,sInA@coords[,1],sInA@coords[,2],radii_in[i])
           if(sampleShape == "square") lCtgs[[i]] = lidR::lasclipRectangle(ctgA_clip1
-                                                                          , sInA@coords[1:20,1] - radii_in[1]
-                                                                          , sInA@coords[1:20,2] - radii_in[1]
-                                                                          , sInA@coords[1:20,1] + radii_in[1]
-                                                                          , sInA@coords[1:20,2] + radii_in[1]
+                                                                          , sInA@coords[,1] - radii_in[1]
+                                                                          , sInA@coords[,2] - radii_in[1]
+                                                                          , sInA@coords[,1] + radii_in[1]
+                                                                          , sInA@coords[,2] + radii_in[1]
                                                                           )
           closeAllConnections()
         }
@@ -336,12 +336,12 @@ cloud2xSample=function(
       lidR::opt_cores(ctgB) <- nCore
       lidR::opt_output_files(ctgB) <- paste0(pathsOutB_in[1], "/clip_{ID}")
 
-      if(sampleShape == "circle") ctgB_clip1 = lidR::lasclipCircle(ctgB,sInB@coords[1:20,1],sInB@coords[1:20,2],radii_in[1])
+      if(sampleShape == "circle") ctgB_clip1 = lidR::lasclipCircle(ctgB,sInB@coords[,1],sInB@coords[,2],radii_in[1])
       if(sampleShape == "square") ctgB_clip1 = lidR::lasclipRectangle(ctgB
-                                                                      , sInB@coords[1:20,1] - radii_in[1]
-                                                                      , sInB@coords[1:20,2] - radii_in[1]
-                                                                      , sInB@coords[1:20,1] + radii_in[1]
-                                                                      , sInB@coords[1:20,2] + radii_in[1]
+                                                                      , sInB@coords[,1] - radii_in[1]
+                                                                      , sInB@coords[,2] - radii_in[1]
+                                                                      , sInB@coords[,1] + radii_in[1]
+                                                                      , sInB@coords[,2] + radii_in[1]
                                                                       )
 
       closeAllConnections()
@@ -357,12 +357,12 @@ cloud2xSample=function(
           plot(ctgB_clip1)
           lidR::opt_output_files(ctgB_clip1) <- paste0(pathsOutB_in[j], "/clip_{ID}")
 
-          if(sampleShape == "circle") lCtgs[[j]] = lidR::lasclipCircle(ctgB_clip1,sInB@coords[1:20,1],sInB@coords[1:20,2],radii_in[j])
+          if(sampleShape == "circle") lCtgs[[j]] = lidR::lasclipCircle(ctgB_clip1,sInB@coords[,1],sInB@coords[,2],radii_in[j])
           if(sampleShape == "square") lCtgs[[j]] = lidR::lasclipRectangle(ctgB_clip1
-                                                                          , sInB@coords[1:20,1] - radii_in[1]
-                                                                          , sInB@coords[1:20,2] - radii_in[1]
-                                                                          , sInB@coords[1:20,1] + radii_in[1]
-                                                                          , sInB@coords[1:20,2] + radii_in[1]
+                                                                          , sInB@coords[,1] - radii_in[1]
+                                                                          , sInB@coords[,2] - radii_in[1]
+                                                                          , sInB@coords[,1] + radii_in[1]
+                                                                          , sInB@coords[,2] + radii_in[1]
                                                                           )
           closeAllConnections()
 
@@ -395,7 +395,7 @@ cloud2xSample=function(
     if(hasPathA){
       gc()
     #clip first radius
-      clipFusion(
+      .clipFusion(
         idxyd=data.frame(id=paste("clip",1:nrow(sInA@coords),sep="_"),coordinates((sInA)),2*radii_in[1])
         ,dir_las = pathLasA
         ,dir_dtm = pathDTMA
@@ -415,7 +415,7 @@ cloud2xSample=function(
 
       if(length(radii_in[1]) > 0){
         for(j in 2:length(radii_in) ){
-          clipFusion(
+          .clipFusion(
             idxyd=data.frame(id=paste("clip",1:nrow(sInA@coords),sep="_"),coordinates((sInA)),2*radii_in[j])
             ,dir_las = pathsOutA_in[1] #subsample from original clips
             ,dir_dtm = NA
@@ -436,7 +436,7 @@ cloud2xSample=function(
     if(hasPathB){
       gc()
       #clip first radius
-      clipFusion(
+      .clipFusion(
         idxyd=data.frame(id=1:nrow(sInB@coords),coordinates((sInB)),2*radii_in[1])
         ,dir_las = pathLasB
         ,dir_dtm = pathDTMB
@@ -456,7 +456,7 @@ cloud2xSample=function(
 
       if(length(radii_in[1]) > 0){
         for(j in 2:length(radii_in) ){
-          clipFusion(
+          .clipFusion(
             idxyd=data.frame(id=paste("clip",1:nrow(sInB@coords),sep="_"),coordinates((sInB)),2*radii_in[j])
             ,dir_las = pathsOutB_in[1] #subsample from original clips
             ,dir_dtm = NA

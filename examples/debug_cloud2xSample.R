@@ -29,7 +29,7 @@ cloud2xSample(
 	,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
 	,extentPolyA = poly1a
 	,extentPolyB = poly2a
-	,nCore = 6
+	,nCore = 2
 	,nSample = 150
 	,procMethod = "FUSION"
 	#,procMethod = "lidR"

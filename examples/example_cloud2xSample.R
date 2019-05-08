@@ -12,7 +12,7 @@ if(F){
 	library(rgeos)
 	library(cloudSampleR)
 
-#A read in extents of data
+#A read in tiles, prepare extents of data
 	poly1=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las","las_polys")
 	poly1a=gBuffer(poly1,width = 5)
 	poly2=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las","las_polys")
@@ -27,10 +27,10 @@ if(F){
 		,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
 		,extentPolyA = poly1a
 		,extentPolyB = poly2a
-		,nCore = 6
-		,nSample = 150
-		,procMethod = "FUSION"
-		#,procMethod = "lidR"
+		,nCore = 3
+		,nSample = 500
+		#,procMethod = "FUSION"
+		,procMethod = "lidR"
 	)
 
 #C compute cloudmetrics for samples and merge ?
