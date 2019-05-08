@@ -1,8 +1,10 @@
 #install packages (only run 1 time, or when package is updated)
+#installing dependencies takes a little while for some reason
 if(F){
-
+	#this approach requires that you first install rtools.exe
 	devtools::install_github("jstrunk001/CloudSampleR")
 
+	#alternatively, you can download the github repository, zip it, and then use R to load package from zip file
 }
 
 #load required packages
@@ -16,15 +18,7 @@ if(F){
 	poly2=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las","las_polys")
 	poly2a=gBuffer(poly2,width = 5)
 
-#B (optional - one time) save polygon buffers so that we don't have to repeat step A above (A can be slow)
-	saveRDS(poly1a,"D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las/buffer5_las_polys.rds" )
-	saveRDS(poly2a,"D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las/buffer5_las_polys.rds" )
-
-#C (optional - skip step A above) load polygon data from rds file - must complete steps A and B at least once
-	poly1a=readRDS("D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las/buffer5_las_polys.rds" )
-	poly2a=readRDS("D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las/buffer5_las_polys.rds" )
-
-#D clip plots and send to output folders
+#B clip plots and send to output folders
 	cloud2xSample(
 		pathClipData = "c:/fusion/clipdata.exe"
 		,pathOutA = "d:/temp/hood_canal_test/clip3in/"
@@ -38,3 +32,6 @@ if(F){
 		,procMethod = "FUSION"
 		#,procMethod = "lidR"
 	)
+
+#C compute cloudmetrics for samples and merge ?
+

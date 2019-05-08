@@ -109,7 +109,7 @@ cloud2xSample=function(
   hasProj4B = !is.na(proj4B )
   hasPathDTMA = !is.na(pathDTMA)
   hasPathDTMB = !is.na(pathDTMB)
-  hasSample = !is.na(samplePoly)
+  hasSample = !is.na(sampleShpA)
   hasExt = !isNA(extentSample[1])
   hasClipSw = nchar(switchesClipdata) > 0
   hasCMSw = nchar(switchesCloudmetrics) > 0
@@ -174,8 +174,8 @@ cloud2xSample=function(
 
   #throw errors based on arguments
   if(errExtent) stop("must at minimum provide argument 'PolyA' or 'extentSample' ")
-  if(errShape) stop("shape must be 'circle' or 'square' or you must provide a 'samplePoly'")
-  if(errType) stop("'sampleType' must be 'regular','random','hexagonal' or you must provide a 'samplePoly'")
+  if(errShape) stop("shape must be 'circle' or 'square' or you must provide 'sampleShpA'")
+  if(errType) stop("'sampleType' must be 'regular','random','hexagonal' or you must provide 'sampleShpA'")
   if(errExtPolyB) stop("oops: argument 'extentSample' can be used with 'extentPolyA', but 'extentSample' cannot be used with argument 'extentPolyB' ")
   if(errProj4) stop("Couldn't confirm that 'extPolyA' and 'extPolyB' had the same projections - define both polygon projections (e.g. arcmap) or provide proj4 strings")
   if(errPath) stop("Either 'pathLasA' or 'pathLasB' is missing: 'pathLasB' is optional but must be provided if two extents are provided")

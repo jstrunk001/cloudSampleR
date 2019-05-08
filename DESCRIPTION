@@ -3,9 +3,9 @@ Type: Package
 Title: Clip plots from multiple point cloud projects (.laz or .las) - commonly lidar or DAP
 Version: 0.1.0
 Author: Jacob Strunk
-Maintainer: The package maintainer <jacob.strunk@usda.org>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Maintainer: Jacob Strunk <jacob.strunk@usda.org>
+Description: Package generates a sample of points and clips point data from two lidar/DAP projects.
+    The same sample locations are used for both projects.
 License: GPL
 Encoding: UTF-8
 LazyData: true
