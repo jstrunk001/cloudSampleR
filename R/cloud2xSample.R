@@ -48,7 +48,34 @@
 #'  <Delete and Replace>
 #'
 #'@examples
-#'  <Delete and Replace>
+
+#load required packages
+#'			library(rgdal)
+#'			library(rgeos)
+#'			library(cloudSampleR)
+#'
+#'			#A read in tiles, prepare extents of data
+#'			poly1=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las","las_polys")
+#'			poly1a=gBuffer(poly1,width = 5)
+#'			poly2=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las","las_polys")
+#'			poly2a=gBuffer(poly2,width = 5)
+#'
+#'			#B clip plots and send to output folders
+#'			cloud2xSample(
+#'				pathClipData = "c:/fusion/clipdata.exe"
+#'				,pathOutA = "d:/temp/hood_canal_test/clip3in/"
+#'				,pathOutB = "d:/temp/hood_canal_test/clip6in/"
+#'				,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+#'				,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+#'				,extentPolyA = poly1a
+#'				,extentPolyB = poly2a
+#'				,nCore = 3
+#'				,nSample = 150
+#'				#,procMethod = "FUSION"
+#'				,procMethod = "lidR"
+#'				,radii = list( feet = c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3 ))
+#'			)
+
 #'
 #'@import some_package,some_package2
 #'
@@ -92,10 +119,10 @@ cloud2xSample=function(
 
 ){
 
-  require(sp)
-  require(rgdal)
-  require(raster)
-  require(rgeos)
+  requireNamespace("sp")
+  requireNamespace("rgdal")
+  requireNamespace("raster")
+  requireNamespace("rgeos")
 
   radii_in  = try(sort(radii, decreasing = T))
 
@@ -122,14 +149,14 @@ cloud2xSample=function(
 
   #prepare spatial data for extents
   loadPoly=function(x,proj4){
-    require(rgdal)
+    requireNamespace(rgdal)
     if(!inherits(x,"Spatial")) x_in = readOGR(x)
     else x_in = x
     if(!is.na(proj4)) proj4string(x_in) = proj4
     return(x_in)
   }
   loadExtent=function(x){
-    require(raster)
+    requireNamespace(raster)
     x_in = as(extent(x),"SpatialPolygons")
     return(x_in)
   }
@@ -290,7 +317,7 @@ cloud2xSample=function(
 
     warning("It is recommended to use 'lasindex -i *.las' from within 'pathLasA' las directory before using this function")
     #build lasR catalogs
-    require(lidR)
+    requireNamespace(lidR)
     if(hasPathA){
       closeAllConnections()
       #clip largest extent

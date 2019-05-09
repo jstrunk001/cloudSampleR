@@ -2,14 +2,13 @@
 % Please edit documentation in R/cloud2xSample.R
 \name{cloud2xSample}
 \alias{cloud2xSample}
-\title{Clip random locations from multiple point cloud datasets (lidar or dap or ifsar etc.)}
+\title{Clip random matched locations from multiple point cloud datasets (lidar or dap or ifsar etc.)}
 \usage{
-cloud2xSample(pathClipData = "c:/fusion/clipdata.exe",
-  pathCloudmetrics = "c:/fusion/cloudmetrics.exe", pathOutA = "",
+cloud2xSample(pathClipData = "c:/fusion/clipdata.exe", pathOutA = "",
   pathOutB = "", pathLasA = "", pathLasB = NA, pathDTMA = NA,
   pathDTMB = NA, patternA = ".*[.]la[s|z]{1}$",
   patternB = ".*[.]la[s|z]{1}$", extentPolyA = NA, extentPolyB = NA,
-  samplePoly = NA, proj4A = NA, proj4B = NA, extentSample = c(llx = NA,
+  sampleShpA = NA, proj4A = NA, proj4B = NA, extentSample = c(llx = NA,
   lly = NA, ulx = NA, uly = NA), nSample = 500, radii = list(feet =
   c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3), meters = c(MtenthAc =
   11.3, MAcre = 35.9, M5Acres = 80.3))[[1]], sampleShape = c("circle",
@@ -19,57 +18,57 @@ cloud2xSample(pathClipData = "c:/fusion/clipdata.exe",
   temp = "c:\\\\temp\\\\clipdata")
 }
 \arguments{
-\item{pathClipData}{?}
+\item{pathClipData}{where to find FUSION clipdata function - only used with procMethod = "FUSION"}
 
-\item{pathCloudmetrics}{?}
+\item{pathOutA}{directory to place clipped plots from project A}
 
-\item{pathOutA}{?}
+\item{pathOutB}{directory to place clipped plots from project B}
 
-\item{pathOutB}{?}
+\item{pathLasA}{directory containing project A las or laz files}
 
-\item{pathLasA}{?}
+\item{pathLasB}{directory containing project B las or laz files}
 
-\item{pathLasB}{?}
+\item{pathDTMA}{(Semi-functional with procMethod = "FUSION", NOT TESTED YET) DTM to use with project A to normalize point heights}
 
-\item{pathDTMA}{?}
+\item{pathDTMB}{(Semi-functional with procMethod = "FUSION", NOT TESTED YET) DTM to use with project B to normalize point heights}
 
-\item{pathDTMB}{?}
+\item{patternA}{grep pattern to match files on for project A}
 
-\item{patternA}{?}
+\item{patternB}{grep pattern to match files on for project B}
 
-\item{patternB}{?}
+\item{extentPolyA}{polygon of project A extent}
 
-\item{extentPolyA}{?}
+\item{extentPolyB}{polygon of project B extent}
 
-\item{extentPolyB}{?}
+\item{sampleShpA}{(NON FUNCTIONING)(Optional) use an existing shapefile with plot locations}
 
-\item{samplePoly}{?}
+\item{proj4A}{(Optional) Provide proj4 strings if projects A and B are in different projections but do not contain projection information (e.g. missing .prj files)}
 
-\item{proj4A}{?}
+\item{proj4B}{(Optional) Provide proj4 strings if projects A and B are in different projections but do not contain projection information (e.g. missing .prj files)}
 
-\item{proj4B}{?}
+\item{extentSample}{(Optional) If the overlap between projects A and B is known, you can provide it here}
 
-\item{extentSample}{?}
+\item{nSample}{number of plots to sample}
 
-\item{nSample}{?}
+\item{radii}{a vector of plot radii to use in clipping plots}
 
-\item{radii}{?}
+\item{sampleShape}{shape of clipped plots ("circle" or "square")}
 
-\item{sampleShape}{?}
+\item{sampleType}{type of spatial distribution of of sample points ("regular" = square grid,"random","hexagonal" = hexagonal grid)}
 
-\item{sampleType}{?}
+\item{doSteps}{(NON FUNCTIONING) Select which steps should be completed in this run}
 
-\item{doSteps}{?}
+\item{switchesClipdata}{optional switches to FUSION's cloudmetrics.exe - see fusion documentation for options}
 
-\item{switchesClipdata}{?}
+\item{switchesCloudmetrics}{(NON FUNCTIONING)}
 
-\item{switchesCloudmetrics}{?}
+\item{procMethod}{Should plots be clipped using R or FUSION?}
 
-\item{procMethod}{?}
+\item{nCore}{How many cores should be used for clipping (the number and speed of hdds is as important as the number of machine threads)}
 
-\item{nCore}{?}
+\item{temp}{(use with procMethod = "FUSION")Where should batch files be placed}
 
-\item{temp}{?}
+\item{pathCloudmetrics}{(NON FUNCTIONING)}
 }
 \value{
 <Delete and Replace>
@@ -84,10 +83,35 @@ cloud2xSample(pathClipData = "c:/fusion/clipdata.exe",
 Revision History
 \tabular{ll}{
 1.0 \tab 2019 May 07 First Debug Version \cr
+1.0 \tab 2019 May 09 Add Documentation for arguments \cr
 }
 }
 \examples{
- <Delete and Replace>
+		library(rgdal)
+		library(rgeos)
+		library(cloudSampleR)
+
+		#A read in tiles, prepare extents of data
+		poly1=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las","las_polys")
+		poly1a=gBuffer(poly1,width = 5)
+		poly2=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las","las_polys")
+		poly2a=gBuffer(poly2,width = 5)
+
+		#B clip plots and send to output folders
+		cloud2xSample(
+			pathClipData = "c:/fusion/clipdata.exe"
+			,pathOutA = "d:/temp/hood_canal_test/clip3in/"
+			,pathOutB = "d:/temp/hood_canal_test/clip6in/"
+			,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+			,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+			,extentPolyA = poly1a
+			,extentPolyB = poly2a
+			,nCore = 3
+			,nSample = 150
+			#,procMethod = "FUSION"
+			,procMethod = "lidR"
+			,radii = list( feet = c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3 ))
+		)
 
 }
 \seealso{
