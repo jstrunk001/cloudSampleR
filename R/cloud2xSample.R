@@ -11,6 +11,7 @@
 #'Revision History
 #' \tabular{ll}{
 #'1.0 \tab 2019 May 07 First Debug Version \cr
+#'1.0 \tab 2019 May 09 Add Documentation for arguments \cr
 #'}
 #'
 #'@author
