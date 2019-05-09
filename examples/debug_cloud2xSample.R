@@ -1,4 +1,8 @@
 
+library(rgdal)
+library(rgeos)
+library(cloudSampleR)
+
 if( F){
 	library(rgdal)
 	library(rgeos)
@@ -29,8 +33,8 @@ cloud2xSample(
 	,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
 	,extentPolyA = poly1a
 	,extentPolyB = poly2a
-	,nCore = 2
+	,nCore = 3
 	,nSample = 150
-	,procMethod = "FUSION"
-	#,procMethod = "lidR"
+	#,procMethod = "FUSION"
+	,procMethod = "lidR"
 )

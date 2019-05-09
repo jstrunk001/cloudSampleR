@@ -28,10 +28,15 @@ if(F){
 		,extentPolyA = poly1a
 		,extentPolyB = poly2a
 		,nCore = 3
-		,nSample = 500
+		,nSample = 150
 		#,procMethod = "FUSION"
 		,procMethod = "lidR"
 	)
+
+#some potential features to add:
+	# reproject clips
+	# compute cloudmetrics
+	# merge cloudmetrics
 
 #C compute cloudmetrics for samples and merge ?
 

@@ -22,8 +22,8 @@
 #'@param pathOutB directory to place clipped plots from project B
 #'@param pathLasA directory containing project A las or laz files
 #'@param pathLasB directory containing project B las or laz files
-#'@param pathDTMA (NOT TESTED YET) DTM to use with project A to normalize point heights
-#'@param pathDTMB (NOT TESTED YET) DTM to use with project B to normalize point heights
+#'@param pathDTMA (Semi-functional with procMethod = "FUSION", NOT TESTED YET) DTM to use with project A to normalize point heights
+#'@param pathDTMB (Semi-functional with procMethod = "FUSION", NOT TESTED YET) DTM to use with project B to normalize point heights
 #'@param patternA grep pattern to match files on for project A
 #'@param patternB grep pattern to match files on for project B
 #'@param extentPolyA polygon of project A extent
@@ -296,6 +296,7 @@ cloud2xSample=function(
       ctgA <- lidR::catalog(pathLasA)
       lidR::opt_cores(ctgA) <- nCore
       lidR::opt_output_files(ctgA) <- paste0(pathsOutA_in[1], "/clip_{ID}")
+      lidR::opt_laz_compression(ctgA) <- TRUE
 
       if(sampleShape == "circle") ctgA_clip1 = lidR::lasclipCircle(ctgA,sInA@coords[,1],sInA@coords[,2],radii_in[1])
       if(sampleShape == "square") ctgA_clip1 = lidR::lasclipRectangle(ctgA
@@ -335,6 +336,7 @@ cloud2xSample=function(
       ctgB <- lidR::catalog(pathLasB)
       lidR::opt_cores(ctgB) <- nCore
       lidR::opt_output_files(ctgB) <- paste0(pathsOutB_in[1], "/clip_{ID}")
+      lidR::opt_laz_compression(ctgB) <- TRUE
 
       if(sampleShape == "circle") ctgB_clip1 = lidR::lasclipCircle(ctgB,sInB@coords[,1],sInB@coords[,2],radii_in[1])
       if(sampleShape == "square") ctgB_clip1 = lidR::lasclipRectangle(ctgB
