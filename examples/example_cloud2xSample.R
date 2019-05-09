@@ -31,6 +31,7 @@ if(F){
 		,nSample = 150
 		#,procMethod = "FUSION"
 		,procMethod = "lidR"
+		,radii = list( feet = c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3 ))
 	)
 
 #some potential features to add:
