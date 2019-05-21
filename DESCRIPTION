@@ -9,10 +9,4 @@ Description: Package generates a sample of points and clips point data from two 
 License: GPL
 Encoding: UTF-8
 LazyData: true
-Imports: 
-	lidR
-	,rgdal
-	,sp
-	,raster
-	,rgeos
 RoxygenNote: 6.0.1

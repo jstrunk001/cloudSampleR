@@ -1,3 +1,5 @@
+#'@name cloudSampleR
+NULL
 #'@title
 #'  Clip random matched locations from multiple point cloud datasets (lidar or dap or ifsar etc.)
 #'
@@ -85,7 +87,7 @@
 
 #Desired upgrades to this function:
 #
-
+#'@rdname cloudSampleR
 #'@export
 #'
 cloud2xSample=function(
