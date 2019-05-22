@@ -151,14 +151,14 @@ cloud2xSample=function(
 
   #prepare spatial data for extents
   loadPoly=function(x,proj4){
-    requireNamespace(rgdal)
+    requireNamespace("rgdal")
     if(!inherits(x,"Spatial")) x_in = readOGR(x)
     else x_in = x
     if(!is.na(proj4)) proj4string(x_in) = proj4
     return(x_in)
   }
   loadExtent=function(x){
-    requireNamespace(raster)
+    requireNamespace("raster")
     x_in = as(extent(x),"SpatialPolygons")
     return(x_in)
   }
@@ -319,7 +319,7 @@ cloud2xSample=function(
 
     warning("It is recommended to use 'lasindex -i *.las' from within 'pathLasA' las directory before using this function")
     #build lasR catalogs
-    requireNamespace(lidR)
+    requireNamespace("lidR")
     if(hasPathA){
       closeAllConnections()
       #clip largest extent
