@@ -151,7 +151,7 @@ cloud2xSample=function(
 
   #prepare spatial data for extents
   loadPoly=function(x,proj4){
-    requireNamespace(rgdal)
+    requireNamespace("rgdal")
     if(!inherits(x,"Spatial")) x_in = readOGR(x)
     else x_in = x
     if(!is.na(proj4)) proj4string(x_in) = proj4
