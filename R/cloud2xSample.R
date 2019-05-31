@@ -126,6 +126,8 @@ cloud2xSample=function(
   requireNamespace("raster")
   requireNamespace("rgeos")
 
+  #alkdjlksajdf
+
   if("feet" %in% names(radii))  radii_in  = try(sort(unlist(radii[[1]]), decreasing = T))
 	else radii_in  = try(sort(unlist(radii), decreasing = T))
 
