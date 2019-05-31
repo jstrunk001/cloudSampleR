@@ -126,7 +126,8 @@ cloud2xSample=function(
   requireNamespace("raster")
   requireNamespace("rgeos")
 
-  radii_in  = try(sort(radii, decreasing = T))
+  if("feet" %in% names(radii))  radii_in  = try(sort(unlist(radii[[1]]), decreasing = T))
+	else radii_in  = try(sort(unlist(radii), decreasing = T))
 
   #figure out what is present
   hasOutA = !is.na(pathOutA)
