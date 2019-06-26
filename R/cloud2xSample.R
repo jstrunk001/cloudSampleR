@@ -246,16 +246,40 @@ cloud2xSample=function(
   if(extOnly) extInA = extentPoly_in
 
   #sample
-  sInA = spsample( extInA , n = nSample , type = sampleType[1] )
-  sInDFA = SpatialPointsDataFrame(sInA, data.frame(id=1:nrow(sInA@coords)))
+  browser()
 
-  #buffer sample
-  fn_buff = function(r, x, shape){
-    if(shape == "circle" | shape == "round") res = rgeos::gBuffer( x , width= r ,capStyle="round" , byid=T)
-    if(shape == "square") res = rgeos::gBuffer(x,width=r,capStyle="square" , byid=T)
-    SpatialPolygonsDataFrame(res, data.frame(id=1:length(res@polygons)))
+
+  #try and load sampleShpA
+  sampleShpA_in = loadPoly(sampleShpA,proj4A)
+
+  #build sample if necessary
+  if(!inherits(sampleShpA_in,"Spatial")){
+
+    sInA = spsample( extInA , n = nSample , type = sampleType[1] )
+    sInDFA = SpatialPointsDataFrame(sInA, data.frame(id=1:nrow(sInA@coords)))
+    sInBuffA = lapply(radii_in, .fn_buff, sInDFA , sampleShape)
+
+  }else{
+
+    #use existing sample
+    sInA = sampleShpA_in
+
+    #get correct data type
+    if(class(sInA) == "SpatialPoints"){
+      sInDFA = SpatialPointsDataFrame(sInA, data.frame(id=1:nrow(sInA@coords)))
+    }else{
+      sInDFA = sInA
+    }
+
+    #buffer as needed
+    if(class(sInDFA) == "SpatialPointsDataFrame"){
+      sInBuffA = lapply(radii_in, .fn_buff, sInDFA , sampleShape)
+    }else{
+      sInBuffA = sInDFA
+    }
+
   }
-  sInBuffA = lapply(radii_in, fn_buff, sInDFA , sampleShape)
+
 
   #reproject spatial data for project B or extent - if necessary
   if(polyAB){
@@ -290,7 +314,7 @@ cloud2xSample=function(
   }
 
   #write shape files
-  if("sInDFA" %in% ls() ){
+  if("sInDFA" %in% ls()){
     #prep
     pathSampleADir = file.path(pathOutA,"shapefiles")
     if(!dir.exists(pathSampleADir)) errPathOutA = try(dir.create(pathSampleADir, recursive = T))
@@ -551,6 +575,7 @@ cloud2xSample=function(
 
 }
 
+#build vrt from list of dtms
 .fn_dtm=function(x,pattern,outNm){
 
   r_in = try(raster(x), silent = T)
@@ -562,6 +587,13 @@ cloud2xSample=function(
   }
   return(r_in)
 
+}
+
+#buffer sample
+.fn_buff = function(r, x, shape){
+  if(shape == "circle" | shape == "round") res = rgeos::gBuffer( x , width= r ,capStyle="round" , byid=T)
+  if(shape == "square") res = rgeos::gBuffer(x,width=r,capStyle="square" , byid=T)
+  SpatialPolygonsDataFrame(res, data.frame(id=1:length(res@polygons)))
 }
 
 

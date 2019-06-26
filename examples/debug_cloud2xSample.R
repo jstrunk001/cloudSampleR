@@ -41,4 +41,5 @@ cloud2xSample(
 	,nSample = 10
 	#,procMethod = "FUSION"
 	,procMethod = "lidR"
+	,sampleShpA = "D:\\temp\\hood_canal_test\\clip3in\\shapefiles\\2019Jun10165355_SamplePoints.shp"
 )
