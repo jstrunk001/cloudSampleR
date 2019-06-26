@@ -1,7 +1,5 @@
 
-library(rgdal)
-library(rgeos)
-library(cloudSampleR)
+
 
 if( F){
 	library(rgdal)
@@ -20,21 +18,27 @@ if( !"poly1" %in% ls() ){
 
 	library(rgdal)
 	library(rgeos)
+	library(cloudSampleR)
+	library(raster)
+
 	poly1a=readRDS("D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las/buffer5_las_polys.rds" )
 	poly2a=readRDS("D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las/buffer5_las_polys.rds" )
 
 }
 
+source("D:\\r_packages_dev\\my_packages\\cloudSampleR\\R\\cloud2xSample.R")
 cloud2xSample(
 	pathClipData = "c:/fusion/clipdata.exe"
 	,pathOutA = "d:/temp/hood_canal_test/clip3in/"
 	,pathOutB = "d:/temp/hood_canal_test/clip6in/"
 	,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
 	,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+	,pathDTMA = "D:\\data\\usgs_ascii\\dtm_tiles\\usgsdtms.vrt"
+	,pathDTMB = "D:\\data\\usgs_ascii\\dtm_tiles\\usgsdtms.vrt"
 	,extentPolyA = poly1a
 	,extentPolyB = poly2a
 	,nCore = 3
-	,nSample = 150
+	,nSample = 10
 	#,procMethod = "FUSION"
 	,procMethod = "lidR"
 )

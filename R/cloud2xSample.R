@@ -98,10 +98,12 @@ cloud2xSample=function(
   ,pathOutB = ""
   ,pathLasA = ""
   ,pathLasB = NA
-  ,pathDTMA = NA
-  ,pathDTMB = NA
   ,patternA = ".*[.]la[s|z]{1}$" #matches ".las" or ".laz"
   ,patternB = ".*[.]la[s|z]{1}$"
+  ,pathDTMA = NA #directory or raster file
+  ,pathDTMB = NA #directory or raster file
+  ,patternDTMA = ".*[.]asc$"
+  ,patternDTMB = ".*[.]asc$"
   ,extentPolyA = NA # polygon with extent of project A
   ,extentPolyB = NA # (optional) polygon with extent of project B which will be interesected with A
   ,sampleShpA = NA # (optional) provide shapefile of target sample locations - assumed to be in projection of A or extent
@@ -154,9 +156,9 @@ cloud2xSample=function(
   #prepare spatial data for extents
   loadPoly=function(x,proj4){
     requireNamespace("rgdal")
-    if(!inherits(x,"Spatial")) x_in = readOGR(x)
+    if(!inherits(x,"Spatial")) x_in = rgdal::readOGR(x)
     else x_in = x
-    if(!is.na(proj4)) proj4string(x_in) = proj4
+    if(!is.na(proj4)) sp::proj4string(x_in) = proj4
     return(x_in)
   }
   loadExtent=function(x){
@@ -177,22 +179,22 @@ cloud2xSample=function(
   extOnly = hasExt & !hasPolyA & !hasPolyB
 
   #check projections
-  if(hasPolyA) hasCRSPolyA = !is.na(proj4string(extentPolyA_in))
-  if(hasPolyB) hasCRSPolyB = !is.na(proj4string(extentPolyB_in))
+  if(hasPolyA) hasCRSPolyA = !is.na(sp::proj4string(extentPolyA_in))
+  if(hasPolyB) hasCRSPolyB = !is.na(sp::proj4string(extentPolyB_in))
   if(polyAB){
 
     #assign proj4
-    if(!hasCRSPolyA & hasProj4A) proj4string(extentPolyA_in) = proj4A
-    if(!hasCRSPolyB & hasProj4B) proj4string(extentPolyB_in) = proj4B
-    bad_proj = !compareCRS(extentPolyA_in, extentPolyB_in)
+    if(!hasCRSPolyA & hasProj4A) sp::proj4string(extentPolyA_in) = proj4A
+    if(!hasCRSPolyB & hasProj4B) sp::proj4string(extentPolyB_in) = proj4B
+    bad_proj = !raster::compareCRS(extentPolyA_in, extentPolyB_in)
 
     #check for proj4 again
-    hasCRSPolyA = !is.na(proj4string(extentPolyA_in))
-    hasCRSPolyB = !is.na(proj4string(extentPolyB_in))
+    hasCRSPolyA = !is.na(sp::proj4string(extentPolyA_in))
+    hasCRSPolyB = !is.na(sp::proj4string(extentPolyB_in))
 
     #transform if needed
     if(!bad_proj) extentPolyB_proj4A = extentPolyB_in
-    if(bad_proj & hasCRSPolyA & hasCRSPolyB) extentPolyB_proj4A = spTransform(extentPolyB_in, proj4string(extentPolyA_in))
+    if(bad_proj & hasCRSPolyA & hasCRSPolyB) extentPolyB_proj4A = spTransform(extentPolyB_in, sp::proj4string(extentPolyA_in))
   }
 
   #catch errors
@@ -258,10 +260,10 @@ cloud2xSample=function(
   #reproject spatial data for project B or extent - if necessary
   if(polyAB){
     if(bad_proj & hasCRSPolyB){
-      sInB = spTransform(sInA , proj4string(extentPolyB_in))
-      extInB = spTransform(extInA , proj4string(extentPolyB_in))
-      sInDFB = spTransform(sInBuffA , proj4string(extentPolyB_in))
-      sInBuffB = sapply(sInBuffA , spTransform, proj4string(extentPolyB_in))
+      sInB = spTransform(sInA , sp::proj4string(extentPolyB_in))
+      extInB = spTransform(extInA , sp::proj4string(extentPolyB_in))
+      sInDFB = spTransform(sInBuffA , sp::proj4string(extentPolyB_in))
+      sInBuffB = sapply(sInBuffA , spTransform, sp::proj4string(extentPolyB_in))
 
     }else{
       sInB = sInA
@@ -323,20 +325,26 @@ cloud2xSample=function(
     #build lasR catalogs
     requireNamespace("lidR")
     if(hasPathA){
+
+      if(hasPathDTMA) DTMA = .fn_dtm(pathDTMA,patternDTMA,file.path(temp,"DTMA.vrt"))
+
       closeAllConnections()
       #clip largest extent
       ctgA <- lidR::catalog(pathLasA)
       lidR::opt_cores(ctgA) <- nCore
       lidR::opt_output_files(ctgA) <- paste0(pathsOutA_in[1], "/clip_{ID}")
       lidR::opt_laz_compression(ctgA) <- TRUE
-
       if(sampleShape == "circle") ctgA_clip1 = lidR::lasclipCircle(ctgA,sInA@coords[,1],sInA@coords[,2],radii_in[1])
       if(sampleShape == "square") ctgA_clip1 = lidR::lasclipRectangle(ctgA
                                                                       , sInA@coords[,1] - radii_in[1]
                                                                       , sInA@coords[,2] - radii_in[1]
                                                                       , sInA@coords[,1] + radii_in[1]
-                                                                      , sInA@coords[,2] + radii_in[1]
-                                                                      )
+                                                                      , sInA@coords[,2] + radii_in[1])
+
+      #update and overwrite original files - may not work
+      if(hasPathDTMA) ctgA_clip1 = lasnormalize(ctgA_clip1, DTMA)
+
+      browser()
 
       closeAllConnections()
 
@@ -348,7 +356,7 @@ cloud2xSample=function(
         lidR::opt_cores(ctgA_clip1) <- nCore
 
         for(i in 2:length(radii_in) ){
-          plot(ctgA_clip1)
+
           lidR::opt_output_files(ctgA_clip1) <- paste0(pathsOutA_in[i], "/clip_{ID}")
 
           if(sampleShape == "circle") lCtgs[[i]] = lidR::lasclipCircle(ctgA_clip1,sInA@coords[,1],sInA@coords[,2],radii_in[i])
@@ -367,6 +375,7 @@ cloud2xSample=function(
       #clip largest extent
       ctgB <- lidR::catalog(pathLasB)
       lidR::opt_cores(ctgB) <- nCore
+      lidR::opt_chunk_size(ctgB) <- 500
       lidR::opt_output_files(ctgB) <- paste0(pathsOutB_in[1], "/clip_{ID}")
       lidR::opt_laz_compression(ctgB) <- TRUE
 
@@ -377,6 +386,14 @@ cloud2xSample=function(
                                                                       , sInB@coords[,1] + radii_in[1]
                                                                       , sInB@coords[,2] + radii_in[1]
                                                                       )
+      if(hasPathDTMB){
+      	dtmFilesB=list.files(pathDTMB,full.names = T)
+
+      	#create VRT file
+				vrt = gdalUtils::gdalbuildvrt()
+
+
+      }
 
       closeAllConnections()
 
@@ -398,13 +415,33 @@ cloud2xSample=function(
                                                                           , sInB@coords[,1] + radii_in[1]
                                                                           , sInB@coords[,2] + radii_in[1]
                                                                           )
+          if(hasPathDTMB){
+
+            test = lidR::lasnormalize(ctgB_clip1,rDTMB)
+
+          }
+
           closeAllConnections()
+
+
+
 
         }
       }
+
     }
 
     #subtract ground elevations
+      #create .vr
+      rDTMB = raster(pathDTMB)
+
+
+
+     browser()
+
+
+    #reproject coordinates if needed
+
 
 
     #compute plot metrics
@@ -514,5 +551,17 @@ cloud2xSample=function(
 
 }
 
+.fn_dtm=function(x,pattern,outNm){
+
+  r_in = try(raster(x), silent = T)
+  if(class(r_in) == "try-error" ){
+    if(!dir.exists(dirname(outNm))) dir.create(dirname(outNm),recursive = T)
+    txtFile = paste(outNm,".inputfiles.txt",sep="")
+    writeLines(list.files(x,pattern=pattern,full.names=T),txtFile)
+    r_in = gdalUtils::gdalbuildvrt(input_file_list = txtFile,output.vrt = outNm)
+  }
+  return(r_in)
+
+}
 
 
