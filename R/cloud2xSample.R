@@ -121,12 +121,14 @@ cloud2xSample=function(
   ,nCore = 2
   ,temp = "c:\\temp\\clipdata"
 
+
 ){
 
   requireNamespace("sp")
   requireNamespace("rgdal")
   requireNamespace("raster")
   requireNamespace("rgeos")
+
 
   #deal with format of radii_in
   if("feet" %in% names(radii))  radii_in  = try(sort(unlist(radii[[1]]), decreasing = T))
@@ -148,7 +150,7 @@ cloud2xSample=function(
   hasClipSw = nchar(switchesClipdata) > 0
   hasCMSw = nchar(switchesCloudmetrics) > 0
   hasShape = sampleShape[1] %in% c("circle","square","round")
-  hasType = sampleType %in% c("regular","random","hexagonal")
+  hasType = sampleType[1] %in% c("regular","random","hexagonal")
 
   #auto assign variables
   date_in = format(Sys.time(), "%Y%b%d%H%M%S")
@@ -156,9 +158,9 @@ cloud2xSample=function(
   #prepare spatial data for extents
   loadPoly=function(x,proj4){
     requireNamespace("rgdal")
-    if(!inherits(x,"Spatial")) x_in = rgdal::readOGR(x)
-    else x_in = x
-    if(!is.na(proj4)) sp::proj4string(x_in) = proj4
+    if(!inherits(x,"Spatial"))if(!is.na(x)) x_in = rgdal::readOGR(x)
+    if(!"x_in" %in% ls()) x_in = x
+    if(inherits(x_in,"Spatial")) if(!is.na(proj4)) sp::proj4string(x_in) = proj4
     return(x_in)
   }
   loadExtent=function(x){
@@ -232,11 +234,23 @@ cloud2xSample=function(
     if(!is.null(names(radii_in))) pathsOutA_in = paste(pathOutA,paste("clipElev",names(radii_in),sep="_"),sep="")
     if(is.null(names(radii_in))) pathsOutA_in = paste(pathOutA,paste("clipElev_Rad",radii_in,"Elev",sep=""),sep="")
     sapply(pathsOutA_in , function(x,...) if(!dir.exists(x)) dir.create(x,...) , recursive = T)
+
+    if(hasPathDTMA & procMethod=="lidR"){
+      if(!is.null(names(radii_in))) pathsOutAHt_in = paste(pathOutA,paste("clipHt",names(radii_in),sep="_"),sep="")
+      if(is.null(names(radii_in))) pathsOutAHt_in = paste(pathOutA,paste("clipHt_Rad",radii_in,"Ht",sep=""),sep="")
+      sapply(pathsOutAHt_in , function(x,...) if(!dir.exists(x)) dir.create(x,...) , recursive = T)
+    }
   }
   if(hasOutB ){
     if(!is.null(names(radii_in))) pathsOutB_in = paste(pathOutB,paste("clipElev",names(radii_in),sep="_"),sep="")
     if(is.null(names(radii_in))) pathsOutB_in = paste(pathOutB,paste("clipElev_Rad",radii_in,sep=""),sep="")
     sapply(pathsOutB_in ,function(x,...) if(!dir.exists(x)) dir.create(x,...) , recursive = T)
+
+    if(hasPathDTMB & procMethod=="lidR"){
+      if(!is.null(names(radii_in))) pathsOutBHt_in = paste(pathOutB,paste("clipHt",names(radii_in),sep="_"),sep="")
+      if(is.null(names(radii_in))) pathsOutBHt_in = paste(pathOutB,paste("clipHt_Rad",radii_in,"Ht",sep=""),sep="")
+      sapply(pathsOutBHt_in , function(x,...) if(!dir.exists(x)) dir.create(x,...) , recursive = T)
+    }
   }
 
   #intersect extents
@@ -245,11 +259,7 @@ cloud2xSample=function(
   if(polyAOnly) extInA = extentPolyA_in
   if(extOnly) extInA = extentPoly_in
 
-  #sample
-  browser()
-
-
-  #try and load sampleShpA
+  #try and load existing sample sampleShpA
   sampleShpA_in = loadPoly(sampleShpA,proj4A)
 
   #build sample if necessary
@@ -349,15 +359,28 @@ cloud2xSample=function(
     #build lasR catalogs
     requireNamespace("lidR")
     if(hasPathA){
-
-      if(hasPathDTMA) DTMA = .fn_dtm(pathDTMA,patternDTMA,file.path(temp,"DTMA.vrt"))
+browser()
+      ctgA_clip =
+        .clip_las(
+          pathLAS = pathLasA
+          ,pathDTM = pathDTMA
+          ,patternDTM = patternDTMA
+          ,pathOut = pathsOutA_in[1]
+          ,pathOutHt = pathsOutAHt_in[1]
+          ,sampleSPDF = sInA
+          ,shape = sampleShape
+          ,radius = radii_in[1]
+          ,nCore = nCore
+          ,temp = temp
+        )
 
       closeAllConnections()
       #clip largest extent
       ctgA <- lidR::catalog(pathLasA)
+
       lidR::opt_cores(ctgA) <- nCore
       lidR::opt_output_files(ctgA) <- paste0(pathsOutA_in[1], "/clip_{ID}")
-      lidR::opt_laz_compression(ctgA) <- TRUE
+      lidR::opt_laz_compression(ctgA) <- F
       if(sampleShape == "circle") ctgA_clip1 = lidR::lasclipCircle(ctgA,sInA@coords[,1],sInA@coords[,2],radii_in[1])
       if(sampleShape == "square") ctgA_clip1 = lidR::lasclipRectangle(ctgA
                                                                       , sInA@coords[,1] - radii_in[1]
@@ -365,11 +388,20 @@ cloud2xSample=function(
                                                                       , sInA@coords[,1] + radii_in[1]
                                                                       , sInA@coords[,2] + radii_in[1])
 
-      #update and overwrite original files - may not work
-      if(hasPathDTMA) ctgA_clip1 = lasnormalize(ctgA_clip1, DTMA)
+      #add height clips
+      if(hasPathDTMA){
 
-      browser()
+        DTMA = .fn_dtm(pathDTMA,patternDTMA,file.path(temp,"DTMA.vrt"))
 
+        lidR::opt_cores(ctgA_clip1 ) <- nCore
+        lidR::opt_output_files(ctgA_clip1 ) <- paste0(pathsOutAHt_in[1], "/clip_{ID}")
+        lidR::opt_laz_compression(ctgA_clip1) <- F
+        ctgAHt_clip1 = lidR::lasnormalize(ctgA_clip1, DTMA, na.rm=T)
+
+        if(!"ctgAHt_clip1" %in% ls()) ctgAHt_clip1 = list(lidR::catalog(pathsOutAHt_in[1]))
+        lCtgsHt = list(ctgAHt_clip1)
+
+      }
       closeAllConnections()
 
       #Begin subclips
@@ -390,18 +422,32 @@ cloud2xSample=function(
                                                                           , sInA@coords[,1] + radii_in[1]
                                                                           , sInA@coords[,2] + radii_in[1]
                                                                           )
+          if(hasPathDTMA){
+
+            lidR::opt_output_files(ctgAHt_clip1[[1]]) <- paste0(pathsOutAHt_in[i], "/clip_{ID}")
+
+            if(sampleShape == "circle") lCtgsHt[[i]] = lidR::lasclipCircle(ctgAHt_clip1,sInA@coords[,1],sInA@coords[,2],radii_in[i])
+            if(sampleShape == "square") lCtgsHt[[i]] = lidR::lasclipRectangle(ctgAHt_clip1
+                                                                            , sInA@coords[,1] - radii_in[1]
+                                                                            , sInA@coords[,2] - radii_in[1]
+                                                                            , sInA@coords[,1] + radii_in[1]
+                                                                            , sInA@coords[,2] + radii_in[1]
+            )
+
+          }
           closeAllConnections()
         }
       }
     }
     if(hasPathB){
+
       closeAllConnections()
       #clip largest extent
       ctgB <- lidR::catalog(pathLasB)
       lidR::opt_cores(ctgB) <- nCore
       lidR::opt_chunk_size(ctgB) <- 500
       lidR::opt_output_files(ctgB) <- paste0(pathsOutB_in[1], "/clip_{ID}")
-      lidR::opt_laz_compression(ctgB) <- TRUE
+      lidR::opt_laz_compression(ctgB) <- F
 
       if(sampleShape == "circle") ctgB_clip1 = lidR::lasclipCircle(ctgB,sInB@coords[,1],sInB@coords[,2],radii_in[1])
       if(sampleShape == "square") ctgB_clip1 = lidR::lasclipRectangle(ctgB
@@ -410,12 +456,17 @@ cloud2xSample=function(
                                                                       , sInB@coords[,1] + radii_in[1]
                                                                       , sInB@coords[,2] + radii_in[1]
                                                                       )
+      browser()
+      #add height clips
       if(hasPathDTMB){
-      	dtmFilesB=list.files(pathDTMB,full.names = T)
+        DTMB = .fn_dtm(pathDTMB,patternDTMB,file.path(temp,"DTMB.vrt"))
+        lidR::opt_cores(ctgB_clip1 ) <- nCore
+        lidR::opt_output_files(ctgB_clip1 ) <- paste0(pathsOutBHt_in[1], "/clip_{ID}")
+        lidR::opt_laz_compression(ctgB_clip1) <- F
+        ctgBht_clip1 = lidR::lasnormalize(ctgB_clip1, DTMB,na.rm=T)
 
-      	#create VRT file
-				vrt = gdalUtils::gdalbuildvrt()
-
+        if(!"ctgBHt_clip1" %in% ls()) ctgBHt_clip1 = list(lidR::catalog(pathsOutBHt_in[1]))
+        lCtgsBHt = list(ctgBHt_clip1)
 
       }
 
@@ -423,7 +474,7 @@ cloud2xSample=function(
 
       #Begin subclips
       if(!"ctgB_clip1" %in% ls()) ctgB_clip1 = list(lidR::catalog(pathsOutB_in[1]))
-      lCtgs = list(ctgB_clip1)
+      lCtgsB = list(ctgB_clip1)
 
       if(length(radii_in[1]) > 0){
         lidR::opt_cores(ctgB_clip1) <- nCore
@@ -432,19 +483,24 @@ cloud2xSample=function(
           plot(ctgB_clip1)
           lidR::opt_output_files(ctgB_clip1) <- paste0(pathsOutB_in[j], "/clip_{ID}")
 
-          if(sampleShape == "circle") lCtgs[[j]] = lidR::lasclipCircle(ctgB_clip1,sInB@coords[,1],sInB@coords[,2],radii_in[j])
-          if(sampleShape == "square") lCtgs[[j]] = lidR::lasclipRectangle(ctgB_clip1
+          if(sampleShape == "circle") lCtgsB[[j]] = lidR::lasclipCircle(ctgB_clip1,sInB@coords[,1],sInB@coords[,2],radii_in[j])
+          if(sampleShape == "square") lCtgsB[[j]] = lidR::lasclipRectangle(ctgB_clip1
                                                                           , sInB@coords[,1] - radii_in[1]
                                                                           , sInB@coords[,2] - radii_in[1]
                                                                           , sInB@coords[,1] + radii_in[1]
                                                                           , sInB@coords[,2] + radii_in[1]
                                                                           )
           if(hasPathDTMB){
+            lidR::opt_output_files(ctgBHt_clip1) <- paste0(pathsOutB_in[j], "/clip_{ID}")
 
-            test = lidR::lasnormalize(ctgB_clip1,rDTMB)
-
+            if(sampleShape == "circle") lCtgsBHt[[j]] = lidR::lasclipCircle(ctgBHt_clip1,sInB@coords[,1],sInB@coords[,2],radii_in[j])
+            if(sampleShape == "square") lCtgsBHt[[j]] = lidR::lasclipRectangle(ctgBHt_clip1
+                                                                             , sInB@coords[,1] - radii_in[1]
+                                                                             , sInB@coords[,2] - radii_in[1]
+                                                                             , sInB@coords[,1] + radii_in[1]
+                                                                             , sInB@coords[,2] + radii_in[1]
+            )
           }
-
           closeAllConnections()
 
 
@@ -455,17 +511,8 @@ cloud2xSample=function(
 
     }
 
-    #subtract ground elevations
-      #create .vr
-      rDTMB = raster(pathDTMB)
-
-
-
-     browser()
-
 
     #reproject coordinates if needed
-
 
 
     #compute plot metrics
@@ -575,11 +622,44 @@ cloud2xSample=function(
 
 }
 
+#clip las and
+.clip_las = function(pathLAS,pathDTM,patternDTM,pathOut,pathOutHt,sampleSPDF,shape,radius,nCore,temp){
+
+  closeAllConnections()
+  ctg_in <- lidR::catalog(pathLAS)
+  lidR::opt_cores(ctg_in) <- nCore
+  lidR::opt_output_files(ctg_in) <- paste0(pathOut, "/clip_{ID}")
+  lidR::opt_laz_compression(ctg_in) <- T
+  if(shape == "circle") ctg_clip = lidR::lasclipCircle(ctg_in,sampleSPDF@coords[,1],sampleSPDF@coords[,2],radius)
+  if(shape == "square") ctg_clip = lidR::lasclipRectangle(ctg_in
+                                                          , sampleSPDF@coords[,1] - radius
+                                                          , sampleSPDF@coords[,2] - radius
+                                                          , sampleSPDF@coords[,1] + radius
+                                                          , sampleSPDF@coords[,2] + radius)
+  if(!is.na(pathDTM)){
+    dtm_in = .fn_dtm(pathDTM,patternDTM,file.path(temp,"DTMA.vrt"))
+
+    lidR::opt_cores(ctg_clip) <- nCore
+    lidR::opt_output_files(ctg_clip) <- paste0(pathOutHt, "/clip_{ID}")
+    lidR::opt_laz_compression(ctg_clip) <- T
+    ctgHt_clip = lidR::lasnormalize(ctg_clip, dtm_in, na.rm=T)
+
+    if(!"ctgHt_clip" %in% ls()) ctgHt_clip = list(lidR::catalog(pathOutHt))
+
+  }
+
+  return(ctg_clip)
+}
+
 #build vrt from list of dtms
 .fn_dtm=function(x,pattern,outNm){
 
-  r_in = try(raster(x), silent = T)
-  if(class(r_in) == "try-error" ){
+  #check if a single raster or directory of rasters is provided
+  is_file = file.exists(x) && !dir.exists(x)
+  #link to raster
+  if(is_file) r_in = try(raster::raster(x), silent = T)
+  #build vrt from multiple rasters
+  if(!is_file){
     if(!dir.exists(dirname(outNm))) dir.create(dirname(outNm),recursive = T)
     txtFile = paste(outNm,".inputfiles.txt",sep="")
     writeLines(list.files(x,pattern=pattern,full.names=T),txtFile)

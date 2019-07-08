@@ -33,13 +33,16 @@ cloud2xSample(
 	,pathOutB = "d:/temp/hood_canal_test/clip6in/"
 	,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
 	,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
-	,pathDTMA = "D:\\data\\usgs_ascii\\dtm_tiles\\usgsdtms.vrt"
-	,pathDTMB = "D:\\data\\usgs_ascii\\dtm_tiles\\usgsdtms.vrt"
+	,pathDTMA = "D:\\data\\wadnr_hood_canal\\hood_canal_dtm\\hood_canal_dtm.vrt"
+	,pathDTMB = "D:\\data\\wadnr_hood_canal\\hood_canal_dtm\\hood_canal_dtm.vrt"
+	# ,pathDTMA = "D:\\data\\usgs_ascii\\dtm_tiles\\usgsdtms.vrt"
+	# ,pathDTMB = "D:\\data\\usgs_ascii\\dtm_tiles\\usgsdtms.vrt"
 	,extentPolyA = poly1a
 	,extentPolyB = poly2a
 	,nCore = 3
-	,nSample = 10
+	,nSample = 5
 	#,procMethod = "FUSION"
 	,procMethod = "lidR"
-	,sampleShpA = "D:\\temp\\hood_canal_test\\clip3in\\shapefiles\\2019Jun10165355_SamplePoints.shp"
+	#,sampleShpA = "D:\\temp\\hood_canal_test\\clip3in\\shapefiles\\2019Jun10165355_SamplePoints.shp"
+
 )

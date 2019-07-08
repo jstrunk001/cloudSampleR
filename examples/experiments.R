@@ -16,9 +16,12 @@ library
 
 flaz = list.files("D:\\data\\wadnr_hood_canal\\laz\\hood_canal_NAIP_DSM_2015\\",full.names=T,pattern="[.]laz")
 
+test0 = raster("D:\\data\\wadnr_hood_canal\\laz\\hood_canal_lidar_2015\\Hood_Canal_033.laz")
+
 las1 = catalog("D:\\data\\wadnr_hood_canal\\laz\\hood_canal_lidar_2015\\Hood_Canal_033.laz")
 opt_output_files(las1) <- "D:\\temp\\test"
 dtm1 = grid_terrain(las1,algorithm = tin())
+raster:::.rasterObjectFromFile
 
 ctg = catalog(flaz[1:3])
 opt_output_files(ctg) <- "D:\\temp\\test1"
