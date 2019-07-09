@@ -359,157 +359,52 @@ cloud2xSample=function(
     #build lasR catalogs
     requireNamespace("lidR")
     if(hasPathA){
-browser()
-      ctgA_clip =
-        .clip_las(
-          pathLAS = pathLasA
-          ,pathDTM = pathDTMA
-          ,patternDTM = patternDTMA
-          ,pathOut = pathsOutA_in[1]
-          ,pathOutHt = pathsOutAHt_in[1]
-          ,sampleSPDF = sInA
-          ,shape = sampleShape
-          ,radius = radii_in[1]
-          ,nCore = nCore
-          ,temp = temp
-        )
 
-      closeAllConnections()
-      #clip largest extent
-      ctgA <- lidR::catalog(pathLasA)
+        ctgA_clip = NA
+        for(i in 1:length(radii_in) ){
 
-      lidR::opt_cores(ctgA) <- nCore
-      lidR::opt_output_files(ctgA) <- paste0(pathsOutA_in[1], "/clip_{ID}")
-      lidR::opt_laz_compression(ctgA) <- F
-      if(sampleShape == "circle") ctgA_clip1 = lidR::lasclipCircle(ctgA,sInA@coords[,1],sInA@coords[,2],radii_in[1])
-      if(sampleShape == "square") ctgA_clip1 = lidR::lasclipRectangle(ctgA
-                                                                      , sInA@coords[,1] - radii_in[1]
-                                                                      , sInA@coords[,2] - radii_in[1]
-                                                                      , sInA@coords[,1] + radii_in[1]
-                                                                      , sInA@coords[,2] + radii_in[1])
+          print(c("A",i, as.character(Sys.time())))
 
-      #add height clips
-      if(hasPathDTMA){
-
-        DTMA = .fn_dtm(pathDTMA,patternDTMA,file.path(temp,"DTMA.vrt"))
-
-        lidR::opt_cores(ctgA_clip1 ) <- nCore
-        lidR::opt_output_files(ctgA_clip1 ) <- paste0(pathsOutAHt_in[1], "/clip_{ID}")
-        lidR::opt_laz_compression(ctgA_clip1) <- F
-        ctgAHt_clip1 = lidR::lasnormalize(ctgA_clip1, DTMA, na.rm=T)
-
-        if(!"ctgAHt_clip1" %in% ls()) ctgAHt_clip1 = list(lidR::catalog(pathsOutAHt_in[1]))
-        lCtgsHt = list(ctgAHt_clip1)
-
-      }
-      closeAllConnections()
-
-      #Begin subclips
-      if(!"ctgA_clip1" %in% ls()) ctgA_clip1 = list(lidR::catalog(pathsOutA_in[1]))
-      lCtgs = list(ctgA_clip1)
-
-      if(length(radii_in[1]) > 0){
-        lidR::opt_cores(ctgA_clip1) <- nCore
-
-        for(i in 2:length(radii_in) ){
-
-          lidR::opt_output_files(ctgA_clip1) <- paste0(pathsOutA_in[i], "/clip_{ID}")
-
-          if(sampleShape == "circle") lCtgs[[i]] = lidR::lasclipCircle(ctgA_clip1,sInA@coords[,1],sInA@coords[,2],radii_in[i])
-          if(sampleShape == "square") lCtgs[[i]] = lidR::lasclipRectangle(ctgA_clip1
-                                                                          , sInA@coords[,1] - radii_in[1]
-                                                                          , sInA@coords[,2] - radii_in[1]
-                                                                          , sInA@coords[,1] + radii_in[1]
-                                                                          , sInA@coords[,2] + radii_in[1]
-                                                                          )
-          if(hasPathDTMA){
-
-            lidR::opt_output_files(ctgAHt_clip1[[1]]) <- paste0(pathsOutAHt_in[i], "/clip_{ID}")
-
-            if(sampleShape == "circle") lCtgsHt[[i]] = lidR::lasclipCircle(ctgAHt_clip1,sInA@coords[,1],sInA@coords[,2],radii_in[i])
-            if(sampleShape == "square") lCtgsHt[[i]] = lidR::lasclipRectangle(ctgAHt_clip1
-                                                                            , sInA@coords[,1] - radii_in[1]
-                                                                            , sInA@coords[,2] - radii_in[1]
-                                                                            , sInA@coords[,1] + radii_in[1]
-                                                                            , sInA@coords[,2] + radii_in[1]
+          ctgA_clip =
+            .clip_las(
+              pathLAS = gsub("//","/",c(pathLasA,paste(pathsOutA_in[-length(pathsOutA_in)],"/",sep=""))[i])
+              ,pathDTM = pathDTMA
+              ,patternDTM = patternDTMA
+              ,pathOut = pathsOutA_in[i]
+              ,pathOutHt = pathsOutAHt_in[i]
+              ,sampleSPDF = sInA
+              ,shape = sampleShape
+              ,radius = radii_in[i]
+              ,nCore = nCore
+              ,temp = temp
             )
 
-          }
-          closeAllConnections()
-        }
       }
     }
     if(hasPathB){
 
-      closeAllConnections()
-      #clip largest extent
-      ctgB <- lidR::catalog(pathLasB)
-      lidR::opt_cores(ctgB) <- nCore
-      lidR::opt_chunk_size(ctgB) <- 500
-      lidR::opt_output_files(ctgB) <- paste0(pathsOutB_in[1], "/clip_{ID}")
-      lidR::opt_laz_compression(ctgB) <- F
 
-      if(sampleShape == "circle") ctgB_clip1 = lidR::lasclipCircle(ctgB,sInB@coords[,1],sInB@coords[,2],radii_in[1])
-      if(sampleShape == "square") ctgB_clip1 = lidR::lasclipRectangle(ctgB
-                                                                      , sInB@coords[,1] - radii_in[1]
-                                                                      , sInB@coords[,2] - radii_in[1]
-                                                                      , sInB@coords[,1] + radii_in[1]
-                                                                      , sInB@coords[,2] + radii_in[1]
-                                                                      )
-      browser()
-      #add height clips
-      if(hasPathDTMB){
-        DTMB = .fn_dtm(pathDTMB,patternDTMB,file.path(temp,"DTMB.vrt"))
-        lidR::opt_cores(ctgB_clip1 ) <- nCore
-        lidR::opt_output_files(ctgB_clip1 ) <- paste0(pathsOutBHt_in[1], "/clip_{ID}")
-        lidR::opt_laz_compression(ctgB_clip1) <- F
-        ctgBht_clip1 = lidR::lasnormalize(ctgB_clip1, DTMB,na.rm=T)
+        for(i in 1:length(radii_in) ){
 
-        if(!"ctgBHt_clip1" %in% ls()) ctgBHt_clip1 = list(lidR::catalog(pathsOutBHt_in[1]))
-        lCtgsBHt = list(ctgBHt_clip1)
+          print(c("B",i,as.character(Sys.time())))
 
-      }
-
-      closeAllConnections()
-
-      #Begin subclips
-      if(!"ctgB_clip1" %in% ls()) ctgB_clip1 = list(lidR::catalog(pathsOutB_in[1]))
-      lCtgsB = list(ctgB_clip1)
-
-      if(length(radii_in[1]) > 0){
-        lidR::opt_cores(ctgB_clip1) <- nCore
-
-        for(j in 2:length(radii_in) ){
-          plot(ctgB_clip1)
-          lidR::opt_output_files(ctgB_clip1) <- paste0(pathsOutB_in[j], "/clip_{ID}")
-
-          if(sampleShape == "circle") lCtgsB[[j]] = lidR::lasclipCircle(ctgB_clip1,sInB@coords[,1],sInB@coords[,2],radii_in[j])
-          if(sampleShape == "square") lCtgsB[[j]] = lidR::lasclipRectangle(ctgB_clip1
-                                                                          , sInB@coords[,1] - radii_in[1]
-                                                                          , sInB@coords[,2] - radii_in[1]
-                                                                          , sInB@coords[,1] + radii_in[1]
-                                                                          , sInB@coords[,2] + radii_in[1]
-                                                                          )
-          if(hasPathDTMB){
-            lidR::opt_output_files(ctgBHt_clip1) <- paste0(pathsOutB_in[j], "/clip_{ID}")
-
-            if(sampleShape == "circle") lCtgsBHt[[j]] = lidR::lasclipCircle(ctgBHt_clip1,sInB@coords[,1],sInB@coords[,2],radii_in[j])
-            if(sampleShape == "square") lCtgsBHt[[j]] = lidR::lasclipRectangle(ctgBHt_clip1
-                                                                             , sInB@coords[,1] - radii_in[1]
-                                                                             , sInB@coords[,2] - radii_in[1]
-                                                                             , sInB@coords[,1] + radii_in[1]
-                                                                             , sInB@coords[,2] + radii_in[1]
+          ctgB_clip =
+            .clip_las(
+              pathLAS = gsub("//","/",c(pathLasB,paste(pathsOutB_in[-length(pathsOutB_in)],"/",sep="")))[i]
+              ,pathDTM = pathDTMB
+              ,patternDTM = patternDTMB
+              ,pathOut = pathsOutB_in[i]
+              ,pathOutHt = pathsOutBHt_in[i]
+              ,sampleSPDF = sInB
+              ,shape = sampleShape
+              ,radius = radii_in[i]
+              ,nCore = nCore
+              ,temp = temp
             )
-          }
-          closeAllConnections()
-
-
-
 
         }
-      }
 
-    }
+      }
 
 
     #reproject coordinates if needed
@@ -623,32 +518,34 @@ browser()
 }
 
 #clip las and
-.clip_las = function(pathLAS,pathDTM,patternDTM,pathOut,pathOutHt,sampleSPDF,shape,radius,nCore,temp){
+.clip_las = function(ctg=NA,pathLAS=NA,pathDTM,patternDTM,pathOut,pathOutHt,sampleSPDF,shape,radius,nCore,temp){
 
   closeAllConnections()
   ctg_in <- lidR::catalog(pathLAS)
+
   lidR::opt_cores(ctg_in) <- nCore
   lidR::opt_output_files(ctg_in) <- paste0(pathOut, "/clip_{ID}")
-  lidR::opt_laz_compression(ctg_in) <- T
+  lidR::opt_laz_compression(ctg_in) <- F
   if(shape == "circle") ctg_clip = lidR::lasclipCircle(ctg_in,sampleSPDF@coords[,1],sampleSPDF@coords[,2],radius)
   if(shape == "square") ctg_clip = lidR::lasclipRectangle(ctg_in
                                                           , sampleSPDF@coords[,1] - radius
                                                           , sampleSPDF@coords[,2] - radius
                                                           , sampleSPDF@coords[,1] + radius
                                                           , sampleSPDF@coords[,2] + radius)
+
   if(!is.na(pathDTM)){
+
     dtm_in = .fn_dtm(pathDTM,patternDTM,file.path(temp,"DTMA.vrt"))
 
     lidR::opt_cores(ctg_clip) <- nCore
     lidR::opt_output_files(ctg_clip) <- paste0(pathOutHt, "/clip_{ID}")
-    lidR::opt_laz_compression(ctg_clip) <- T
-    ctgHt_clip = lidR::lasnormalize(ctg_clip, dtm_in, na.rm=T)
-
-    if(!"ctgHt_clip" %in% ls()) ctgHt_clip = list(lidR::catalog(pathOutHt))
+    lidR::opt_laz_compression(ctg_clip) <- F
+    ctgHt_clip = try(lidR::lasnormalize(ctg_clip, dtm_in, na.rm=T),silent=T)
 
   }
-
+  try(closeAllConnections())
   return(ctg_clip)
+
 }
 
 #build vrt from list of dtms

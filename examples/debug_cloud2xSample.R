@@ -30,9 +30,11 @@ source("D:\\r_packages_dev\\my_packages\\cloudSampleR\\R\\cloud2xSample.R")
 cloud2xSample(
 	pathClipData = "c:/fusion/clipdata.exe"
 	,pathOutA = "d:/temp/hood_canal_test/clip3in/"
-	,pathOutB = "d:/temp/hood_canal_test/clip6in/"
+	,pathOutB = "d:/temp/hood_canal_test/clipLidar/"
+	#,pathOutB = "d:/temp/hood_canal_test/clip6in/"
 	,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
-	,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+	#,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+	,pathLasB = "D:\\data\\wadnr_hood_canal\\laz\\hood_canal_lidar_2015\\"
 	,pathDTMA = "D:\\data\\wadnr_hood_canal\\hood_canal_dtm\\hood_canal_dtm.vrt"
 	,pathDTMB = "D:\\data\\wadnr_hood_canal\\hood_canal_dtm\\hood_canal_dtm.vrt"
 	# ,pathDTMA = "D:\\data\\usgs_ascii\\dtm_tiles\\usgsdtms.vrt"
