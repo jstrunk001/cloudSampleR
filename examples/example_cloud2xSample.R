@@ -12,6 +12,15 @@ if(F){
 	library(rgeos)
 	library(cloudSampleR)
 
+#Optional - build a single .vrt raster from a list of many DTM rasters (e.g. .tif and .img)
+# this simplifies managing rasters with the raster package / lidR package
+if(F){
+
+	tifs = list.files("D:\\data\\wadnr_hood_canal\\hood_canal_dtm",pattern="[.]tif",full.names=T)
+	gdalUtils::gdalbuildvrt(tifs,"D:\\data\\wadnr_hood_canal\\hood_canal_dtm\\dtm_demo.vrt")
+
+}
+
 #A read in tiles, prepare extents of data
 	poly1=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las","las_polys")
 	poly1a=gBuffer(poly1,width = 5)
@@ -32,6 +41,23 @@ if(F){
 		#,procMethod = "FUSION"
 		,procMethod = "lidR"
 		,radii = list( feet = c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3 ))
+		#,radii = list( feet = c(FtTenthAc = 37.2 ))
+	)
+
+	#single buffer and bring in existing points - process with R
+	cloud2xSample(
+		pathClipData = "c:/fusion/clipdata.exe"
+		,pathOutA = "d:/temp/hood_canal_test/clip3in/"
+		,pathOutB = "d:/temp/hood_canal_test/clip6in/"
+		,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+		,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+		,extentPolyA = poly1a
+		,extentPolyB = poly2a
+		,nCore = 3
+		,nSample = 150
+		,procMethod = "lidR"
+		,radii = list( feet = c(FtTenthAc = 37.2 ))
+		,sampleShpA = "D:\\temp\\hood_canal_test\\clip3in\\shapefiles\\2019Jun10165355_SamplePoints.shp"
 	)
 
 #some potential features to add:
