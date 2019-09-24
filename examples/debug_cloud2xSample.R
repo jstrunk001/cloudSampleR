@@ -25,6 +25,18 @@ if( !"poly1" %in% ls() ){
 	poly2a=readRDS("D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las/buffer5_las_polys.rds" )
 
 }
+# build a "single" dtm from a vector of dtms
+# gdalbuildvrt
+# gdalUtils
+# https://www.rdocumentation.org/packages/gdalUtils/versions/2.0.1.14/topics/gdalbuildvrt
+
+if(F){
+
+	tifs = list.files("D:\\data\\wadnr_hood_canal\\hood_canal_dtm",pattern="[.]tif",full.names=T)
+	gdalUtils::gdalbuildvrt(tifs,"D:\\data\\wadnr_hood_canal\\hood_canal_dtm\\dtm_demo.vrt")
+
+}
+
 
 source("D:\\r_packages_dev\\my_packages\\cloudSampleR\\R\\cloud2xSample.R")
 cloud2xSample(

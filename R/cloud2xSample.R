@@ -31,7 +31,7 @@ NULL
 #'@param patternB grep pattern to match files on for project B
 #'@param extentPolyA polygon of project A extent
 #'@param extentPolyB polygon of project B extent
-#'@param sampleShpA (NON FUNCTIONING)(Optional) use an existing shapefile with plot locations
+#'@param sampleShpA (Optional) use an existing shapefile with plot locations
 #'@param proj4A (Optional) Provide proj4 strings if projects A and B are in different projections but do not contain projection information (e.g. missing .prj files)
 #'@param proj4B (Optional) Provide proj4 strings if projects A and B are in different projections but do not contain projection information (e.g. missing .prj files)
 #'@param extentSample (Optional) If the overlap between projects A and B is known, you can provide it here
