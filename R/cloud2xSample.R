@@ -77,13 +77,15 @@ NULL
 #'				,procMethod = "lidR"
 #'				,radii = list( feet = c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3 ))
 #'			)
-
 #'
-#'@import some_package,some_package2
 #'
-
-#
-#'@seealso \code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+#'@import plyr
+#'@import sp
+#'@import rgdal
+#'@import raster
+#'@import rgeos
+#'
+#'@seealso \code{\link{readLAS}}\cr \code{\link{spsample}}\cr
 
 #Desired upgrades to this function:
 #

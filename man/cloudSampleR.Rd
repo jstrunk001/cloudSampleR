@@ -6,16 +6,18 @@
 \title{Clip random matched locations from multiple point cloud datasets (lidar or dap or ifsar etc.)}
 \usage{
 cloud2xSample(pathClipData = "c:/fusion/clipdata.exe", pathOutA = "",
-  pathOutB = "", pathLasA = "", pathLasB = NA, pathDTMA = NA,
-  pathDTMB = NA, patternA = ".*[.]la[s|z]{1}$",
-  patternB = ".*[.]la[s|z]{1}$", extentPolyA = NA, extentPolyB = NA,
-  sampleShpA = NA, proj4A = NA, proj4B = NA, extentSample = c(llx = NA,
-  lly = NA, ulx = NA, uly = NA), nSample = 500, radii = list(feet =
-  c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3), meters = c(MtenthAc =
-  11.3, MAcre = 35.9, M5Acres = 80.3))[[1]], sampleShape = c("circle",
-  "square")[1], sampleType = c("regular", "random", "hexagonal"),
-  doSteps = c("sample", "clip", "metrics"), switchesClipdata = "",
-  switchesCloudmetrics = "", procMethod = c("lidR", "FUSION"), nCore = 2,
+  pathOutB = "", pathLasA = "", pathLasB = NA,
+  patternA = ".*[.]la[s|z]{1}$", patternB = ".*[.]la[s|z]{1}$",
+  pathDTMA = NA, pathDTMB = NA, patternDTMA = ".*[.]asc$",
+  patternDTMB = ".*[.]asc$", extentPolyA = NA, extentPolyB = NA,
+  sampleShpA = NA, proj4A = NA, proj4B = NA, extentSample = c(llx =
+  NA, lly = NA, ulx = NA, uly = NA), nSample = 500, radii = list(feet =
+  c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3), meters =
+  c(MtenthAc = 11.3, MAcre = 35.9, M5Acres = 80.3))[[1]],
+  sampleShape = c("circle", "square")[1], sampleType = c("regular",
+  "random", "hexagonal"), doSteps = c("sample", "clip", "metrics"),
+  switchesClipdata = "", switchesCloudmetrics = "",
+  procMethod = c("lidR", "FUSION"), nCore = 2,
   temp = "c:\\\\temp\\\\clipdata")
 }
 \arguments{
@@ -29,19 +31,19 @@ cloud2xSample(pathClipData = "c:/fusion/clipdata.exe", pathOutA = "",
 
 \item{pathLasB}{directory containing project B las or laz files}
 
-\item{pathDTMA}{(Semi-functional with procMethod = "FUSION", NOT TESTED YET) DTM to use with project A to normalize point heights}
-
-\item{pathDTMB}{(Semi-functional with procMethod = "FUSION", NOT TESTED YET) DTM to use with project B to normalize point heights}
-
 \item{patternA}{grep pattern to match files on for project A}
 
 \item{patternB}{grep pattern to match files on for project B}
+
+\item{pathDTMA}{(Semi-functional with procMethod = "FUSION", NOT TESTED YET) DTM to use with project A to normalize point heights}
+
+\item{pathDTMB}{(Semi-functional with procMethod = "FUSION", NOT TESTED YET) DTM to use with project B to normalize point heights}
 
 \item{extentPolyA}{polygon of project A extent}
 
 \item{extentPolyB}{polygon of project B extent}
 
-\item{sampleShpA}{(NON FUNCTIONING)(Optional) use an existing shapefile with plot locations}
+\item{sampleShpA}{(Optional) use an existing shapefile with plot locations}
 
 \item{proj4A}{(Optional) Provide proj4 strings if projects A and B are in different projections but do not contain projection information (e.g. missing .prj files)}
 
@@ -114,9 +116,10 @@ Revision History
 			,radii = list( feet = c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3 ))
 		)
 
+
 }
 \seealso{
-\code{\link{another_function}}\cr \code{\link{yet_another_function}}\cr
+\code{\link{readLAS}}\cr \code{\link{spsample}}\cr
 }
 \author{
 Jacob Strunk <Jstrunk@fs.fed.us>

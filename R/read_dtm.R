@@ -36,7 +36,7 @@
 #'
 #' one_dtm=read_dtm_header("//dnrgpoly112/e$/rs_prototype/dtm/dtm_files/38_58.dtm")
 #'
-#'@import plyr, raster
+#'@import plyr raster
 #'
 #'
 #'@seealso \code{\link{read_las}}\cr
