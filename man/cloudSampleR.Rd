@@ -5,20 +5,36 @@
 \alias{cloud2xSample}
 \title{Clip random matched locations from multiple point cloud datasets (lidar or dap or ifsar etc.)}
 \usage{
-cloud2xSample(pathClipData = "c:/fusion/clipdata.exe", pathOutA = "",
-  pathOutB = "", pathLasA = "", pathLasB = NA,
-  patternA = ".*[.]la[s|z]{1}$", patternB = ".*[.]la[s|z]{1}$",
-  pathDTMA = NA, pathDTMB = NA, patternDTMA = ".*[.]asc$",
-  patternDTMB = ".*[.]asc$", extentPolyA = NA, extentPolyB = NA,
-  sampleShpA = NA, proj4A = NA, proj4B = NA, extentSample = c(llx =
-  NA, lly = NA, ulx = NA, uly = NA), nSample = 500, radii = list(feet =
-  c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3), meters =
-  c(MtenthAc = 11.3, MAcre = 35.9, M5Acres = 80.3))[[1]],
-  sampleShape = c("circle", "square")[1], sampleType = c("regular",
-  "random", "hexagonal"), doSteps = c("sample", "clip", "metrics"),
-  switchesClipdata = "", switchesCloudmetrics = "",
-  procMethod = c("lidR", "FUSION"), nCore = 2,
-  temp = "c:\\\\temp\\\\clipdata")
+cloud2xSample(
+  pathClipData = "c:/fusion/clipdata.exe",
+  pathOutA = "",
+  pathOutB = "",
+  pathLasA = "",
+  pathLasB = NA,
+  patternA = ".*[.]la[s|z]{1}$",
+  patternB = ".*[.]la[s|z]{1}$",
+  pathDTMA = NA,
+  pathDTMB = NA,
+  patternDTMA = ".*[.]asc$",
+  patternDTMB = ".*[.]asc$",
+  extentPolyA = NA,
+  extentPolyB = NA,
+  sampleShpA = NA,
+  proj4A = NA,
+  proj4B = NA,
+  extentSample = c(llx = NA, lly = NA, ulx = NA, uly = NA),
+  nSample = 500,
+  radii = list(feet = c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3), meters =
+    c(MtenthAc = 11.3, MAcre = 35.9, M5Acres = 80.3))[[1]],
+  sampleShape = c("circle", "square")[1],
+  sampleType = c("regular", "random", "hexagonal"),
+  doSteps = c("sample", "clip", "metrics"),
+  switchesClipdata = "",
+  switchesCloudmetrics = "",
+  procMethod = c("lidR", "FUSION"),
+  nCore = 2,
+  temp = "c:\\\\temp\\\\clipdata"
+)
 }
 \arguments{
 \item{pathClipData}{where to find FUSION clipdata function - only used with procMethod = "FUSION"}

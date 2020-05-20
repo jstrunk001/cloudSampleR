@@ -233,24 +233,24 @@ cloud2xSample=function(
 
   #create output folders
   if(hasOutA ){
-    if(!is.null(names(radii_in))) pathsOutA_in = paste(pathOutA,paste("clipElev",names(radii_in),sep="_"),sep="")
-    if(is.null(names(radii_in))) pathsOutA_in = paste(pathOutA,paste("clipElev_Rad",radii_in,"Elev",sep=""),sep="")
+    if(!is.null(names(radii_in))) pathsOutA_in = paste(pathOutA,"/",paste("clipElev",names(radii_in),sep="_"),sep="")
+    if(is.null(names(radii_in))) pathsOutA_in = paste(pathOutA,"/",paste("clipElev_Rad",radii_in,"Elev",sep=""),sep="")
     sapply(pathsOutA_in , function(x,...) if(!dir.exists(x)) dir.create(x,...) , recursive = T)
 
     if(hasPathDTMA & procMethod=="lidR"){
-      if(!is.null(names(radii_in))) pathsOutAHt_in = paste(pathOutA,paste("clipHt",names(radii_in),sep="_"),sep="")
-      if(is.null(names(radii_in))) pathsOutAHt_in = paste(pathOutA,paste("clipHt_Rad",radii_in,"Ht",sep=""),sep="")
+      if(!is.null(names(radii_in))) pathsOutAHt_in = paste(pathOutA,"/",paste("clipHt",names(radii_in),sep="_"),sep="")
+      if(is.null(names(radii_in))) pathsOutAHt_in = paste(pathOutA,"/",paste("clipHt_Rad",radii_in,"Ht",sep=""),sep="")
       sapply(pathsOutAHt_in , function(x,...) if(!dir.exists(x)) dir.create(x,...) , recursive = T)
     }
   }
   if(hasOutB ){
-    if(!is.null(names(radii_in))) pathsOutB_in = paste(pathOutB,paste("clipElev",names(radii_in),sep="_"),sep="")
-    if(is.null(names(radii_in))) pathsOutB_in = paste(pathOutB,paste("clipElev_Rad",radii_in,sep=""),sep="")
+    if(!is.null(names(radii_in))) pathsOutB_in = paste(pathOutB,"/",paste("clipElev",names(radii_in),sep="_"),sep="")
+    if(is.null(names(radii_in))) pathsOutB_in = paste(pathOutB,"/",paste("clipElev_Rad",radii_in,sep=""),sep="")
     sapply(pathsOutB_in ,function(x,...) if(!dir.exists(x)) dir.create(x,...) , recursive = T)
 
     if(hasPathDTMB & procMethod=="lidR"){
-      if(!is.null(names(radii_in))) pathsOutBHt_in = paste(pathOutB,paste("clipHt",names(radii_in),sep="_"),sep="")
-      if(is.null(names(radii_in))) pathsOutBHt_in = paste(pathOutB,paste("clipHt_Rad",radii_in,"Ht",sep=""),sep="")
+      if(!is.null(names(radii_in))) pathsOutBHt_in = paste(pathOutB,"/",paste("clipHt",names(radii_in),sep="_"),sep="")
+      if(is.null(names(radii_in))) pathsOutBHt_in = paste(pathOutB,"/",paste("clipHt_Rad",radii_in,"Ht",sep=""),sep="")
       sapply(pathsOutBHt_in , function(x,...) if(!dir.exists(x)) dir.create(x,...) , recursive = T)
     }
   }
