@@ -370,6 +370,7 @@ cloud2xSample=function(
           ctgA_clip =
             .clip_las(
               pathLAS = gsub("//","/",c(pathLasA,paste(pathsOutA_in[-length(pathsOutA_in)],"/",sep=""))[i])
+              ,patternLAS = patternA
               ,pathDTM = pathDTMA
               ,patternDTM = patternDTMA
               ,pathOut = pathsOutA_in[i]
@@ -393,6 +394,7 @@ cloud2xSample=function(
           ctgB_clip =
             .clip_las(
               pathLAS = gsub("//","/",c(pathLasB,paste(pathsOutB_in[-length(pathsOutB_in)],"/",sep="")))[i]
+              ,patternLAS = patternB
               ,pathDTM = pathDTMB
               ,patternDTM = patternDTMB
               ,pathOut = pathsOutB_in[i]
@@ -437,6 +439,7 @@ cloud2xSample=function(
       .clipFusion(
         idxyd=data.frame(id=paste("clip",1:nrow(sInA@coords),sep="_"),coordinates((sInA)),2*radii_in[1])
         ,dir_las = pathLasA
+        ,patternLAS = patternA
         ,dir_dtm = pathDTMA
         ,dir_clipdata=pathClipData
         ,dir_out = pathsOutA_in[1]
@@ -457,6 +460,7 @@ cloud2xSample=function(
           .clipFusion(
             idxyd=data.frame(id=paste("clip",1:nrow(sInA@coords),sep="_"),coordinates((sInA)),2*radii_in[j])
             ,dir_las = pathsOutA_in[1] #subsample from original clips
+            ,patternLAS = patternA
             ,dir_dtm = NA
             ,dir_clipdata=pathClipData
             ,dir_out = pathsOutA_in[j]
@@ -478,6 +482,7 @@ cloud2xSample=function(
       .clipFusion(
         idxyd=data.frame(id=1:nrow(sInB@coords),coordinates((sInB)),2*radii_in[1])
         ,dir_las = pathLasB
+        ,patternLAS = patternB
         ,dir_dtm = pathDTMB
         ,dir_clipdata=pathClipData
         ,dir_out = pathsOutB_in[1]
@@ -498,6 +503,7 @@ cloud2xSample=function(
           .clipFusion(
             idxyd=data.frame(id=paste("clip",1:nrow(sInB@coords),sep="_"),coordinates((sInB)),2*radii_in[j])
             ,dir_las = pathsOutB_in[1] #subsample from original clips
+            ,patternLAS = patternB
             ,dir_dtm = NA
             ,dir_clipdata=pathClipData
             ,dir_out = pathsOutB_in[j]
@@ -520,10 +526,10 @@ cloud2xSample=function(
 }
 
 #clip las and
-.clip_las = function(ctg=NA,pathLAS=NA,pathDTM,patternDTM,pathOut,pathOutHt,sampleSPDF,shape,radius,nCore,temp){
-
+.clip_las = function(ctg=NA,pathLAS=NA,patternLAS,pathDTM,patternDTM,pathOut,pathOutHt,sampleSPDF,shape,radius,nCore,temp){
   closeAllConnections()
-  ctg_in <- lidR::catalog(pathLAS)
+  las_paths = list.files(pathLAS,full.names=T,pattern=patternLAS,recursive=T)
+  ctg_in <- lidR::catalog(las_paths)
 
   lidR::opt_cores(ctg_in) <- nCore
   lidR::opt_output_files(ctg_in) <- paste0(pathOut, "/clip_{ID}")
@@ -550,6 +556,87 @@ cloud2xSample=function(
 
 }
 
+
+.clipFusion=function(
+  idxyd=NA #id,x,y,diameter
+  ,dir_las = NA
+  ,patternLAS = NA
+  ,dir_dtm = NA
+  ,dir_clipdata="c:\\fusion\\clipdata.exe"
+  ,dir_out = NA
+  ,out_f = c(".las",".laz")
+  ,clipdata_switches="/height /shape:1"
+  ,n_core=6
+  ,temp = "c:\\temp\\clipdata"
+  ,run=T
+
+){
+
+  proc_time=format(Sys.time(),"%Y%b%d_%H%M%S")
+  require(parallel)
+  if(is.na(dir_las)) stop("dir_las not provided")
+  if(is.na(dir_out)){
+    warning("dir_out not provided, using temp:",temp)
+    dir_out=temp
+  }
+  if(is.na(dir_dtm)){
+    warning("dir_dtm not provided, points will not be elevation adjusted")
+  }
+  if(!file.exists(dir_out)) try(dir.create(dir_out, recursive=T),silent=T)
+  temp = .backslash(paste(temp,"/",proc_time,"/",sep=""))
+  dir.create(temp,recursive=T)
+
+  #prepare coordinates
+  cds_df= data.frame(
+    xmin = idxyd[,2] - idxyd[,4]/2
+    ,ymin = idxyd[,3] - idxyd[,4]/2
+    ,xmax = idxyd[,2] + idxyd[,4]/2
+    ,ymax = idxyd[,3] + idxyd[,4]/2
+  )
+  #output files
+  lasz_out = file.path(dir_out,paste(idxyd[,1],out_f[1],sep=""))
+
+  #prepare dtm list
+  if(!is.na(dir_dtm)){
+    dtm_list=file.path(temp,"dtm_list.txt")
+    dtm_files = list.files(dir_dtm, full.names=T,pattern="[.]dtm$")
+    writeLines(dtm_files,dtm_list)
+    dtm_switch = paste("/dtm:",dtm_list,sep="",collapse="")
+  }
+  #prepare las list
+  lasz_list=file.path(temp,"lasz_list.txt")
+  lasz_files = list.files(dir_las, full.names=T,pattern=patternLAS,recursive=T)
+
+  writeLines(lasz_files,lasz_list)
+
+  #prepare commands
+  cmd_df = data.frame(dir_cd=dir_clipdata)
+  if(!is.na(clipdata_switches[1]))if(nchar(clipdata_switches[1]) > 0) cmd_df = data.frame(cmd_df,sw=clipdata_switches[1])
+  if(!is.na(dir_dtm)) cmd_df = data.frame(cmd_df,dtm_sw=dtm_switch)
+  cmds_df = data.frame(cmd_df,lasz_list,lasz_out,cds_df)
+  cmds = apply(cmds_df,1,paste,collapse=" ")
+
+  #write commands to batch file
+  cmds_out = file.path(temp,"fusion_commands.bat")
+  writeLines(cmds, cmds_out)
+
+  #run commands
+  if(run){
+    require(parallel)
+    clus=makeCluster(n_core)
+    res=parLapply(clus,cmds,shell);gc()
+    gc();stopCluster(clus);gc()
+    return(list(res=res,cmds=cmds))
+
+  }else{
+
+    return(list(res=NA,cmds=cmds))
+
+  }
+
+}
+
+
 #build vrt from list of dtms
 .fn_dtm=function(x,pattern,outNm){
 
@@ -575,4 +662,7 @@ cloud2xSample=function(
   SpatialPolygonsDataFrame(res, data.frame(id=1:length(res@polygons)))
 }
 
+isNA <- function(x){
+  is.atomic(x) && length(x) == 1 && is.na(x)
+}
 

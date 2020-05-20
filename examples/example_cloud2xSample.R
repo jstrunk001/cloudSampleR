@@ -16,15 +16,15 @@ if(F){
 # this simplifies managing rasters with the raster package / lidR package
 if(F){
 
-	tifs = list.files("D:\\data\\wadnr_hood_canal\\hood_canal_dtm",pattern="[.]tif",full.names=T)
+	tifs = list.files("D:\\data\\wa\\wadnr_hood_canal\\hood_canal_dtm",pattern="[.]tif",full.names=T)
 	gdalUtils::gdalbuildvrt(tifs,"D:\\data\\wadnr_hood_canal\\hood_canal_dtm\\dtm_demo.vrt")
 
 }
 
 #A read in tiles, prepare extents of data
-	poly1=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las","las_polys")
+	poly1=rgdal::readOGR("D:/data/wa/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las","las_polys")
 	poly1a=gBuffer(poly1,width = 5)
-	poly2=rgdal::readOGR("D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las","las_polys")
+	poly2=rgdal::readOGR("D:/data/wa/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las","las_polys")
 	poly2a=gBuffer(poly2,width = 5)
 
 #B clip plots and send to output folders
@@ -32,8 +32,8 @@ if(F){
 		pathClipData = "c:/fusion/clipdata.exe"
 		,pathOutA = "d:/temp/hood_canal_test/clip3in/"
 		,pathOutB = "d:/temp/hood_canal_test/clip6in/"
-		,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
-		,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+		,pathLasA = "D:/data/wa/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+		,pathLasB = "D:/data/wa/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
 		,extentPolyA = poly1a
 		,extentPolyB = poly2a
 		,nCore = 3
