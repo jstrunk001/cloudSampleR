@@ -1,0 +1,251 @@
+---
+title: "example_workflow_cloud2xsample"
+author: "Jacob Strunk"
+date: "5/20/2020"
+output: html_document
+---
+
+#install packages (only run 1 time, or when package is updated)
+#installing dependencies takes a little while for some reason
+#alternatively, you can download the github repository, zip it, and then use R to load package from zip file
+
+#notice this chunk is turned off by default!! Only run one time
+
+```{r, eval=FALSE}
+
+	devtools::install_github("jstrunk001/CloudSampleR")
+
+```
+
+
+#load required packages
+```{r }
+	library(rgdal)
+	library(rgeos)
+	library(cloudSampleR)
+
+```
+
+#This is also turned off
+#you only want to run this one time as well
+
+```{r, eval=FALSE}
+
+	tifs = list.files("D:\\data\\wa\\wadnr_hood_canal\\hood_canal_dtm",pattern="[.]tif",full.names=T)
+	gdalUtils::gdalbuildvrt(tifs,"D:\\data\\wadnr_hood_canal\\hood_canal_dtm\\dtm_demo.vrt")
+
+```
+
+# Read in data extents (e.g. tile index shapefile) for two point clouds
+```{r }
+
+	poly1=rgdal::readOGR("D:/data/wa/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/manage_las","las_polys")
+	poly1a=rgeos::gBuffer(poly1,width = 5)
+	poly2=rgdal::readOGR("D:/data/wa/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/manage_las","las_polys")
+	poly2a=rgeos::gBuffer(poly2,width = 5)
+
+```
+
+
+# Approach #1 
+
+```{r }
+	cloud2xSample(
+		pathClipData = "c:/fusion/clipdata.exe"
+		,pathOutA = "d:/temp/hood_canal_test/clip3in/"
+		,pathOutB = "d:/temp/hood_canal_test/clip6in/"
+		,pathLasA = "D:/data/wa/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+		,pathLasB = "D:/data/wa/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+		,extentPolyA = poly1a
+		,extentPolyB = poly2a
+		,nCore = 3
+		,nSample = 150
+		#,procMethod = "FUSION"
+		,procMethod = "lidR"
+		,radii = list( feet = c(FtTenthAc = 37.2, FtAcre = 117.8, Ft5Acres = 263.3 ))
+		#,radii = list( feet = c(FtTenthAc = 37.2 ))
+	)
+
+```
+
+
+# Approach #3 -> pass our own sample points
+ -build our own sample locations
+ -program buffers them
+ -clip
+
+```{r }
+
+	library(sp)
+  set.seed(35)
+	samp50 = spsample(poly1a,50,type="hexagonal")
+	samp50df = SpatialPointsDataFrame(samp50,data.frame(ID=1:length(samp50),project="HoodCanal3in"))
+	plot(poly1a)
+  plot(samp50df,add=T)
+  rgdal::writeOGR(samp50df, dsn = "c:/temp" , layer="HC_samp50pts",driver="ESRI Shapefile", overwrite_layer = T, morphToESRI= T)
+  
+	#single buffer and bring in existing points - process with R
+	cloud2xSample(
+		pathClipData = "c:/fusion/clipdata.exe"
+		,pathOutA = "d:/temp/hood_canal_test/clip3in/"
+		,pathOutB = "d:/temp/hood_canal_test/clip6in/"
+		,pathLasA = "D:/data/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+		,pathLasB = "D:/data/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+		,extentPolyA = poly1a
+		,extentPolyB = poly2a
+		,nCore = 3
+		,nSample = 150
+		,procMethod = "lidR"
+		,radii = list( feet = c(FtTenthAc = 37.2 ))
+		,sampleShpA = "c:\\temp\\HC_samp50pts.shp"
+	)
+
+
+```
+
+# Approach #3 -> pass our own polygons
+ -build our own sample locations
+ -buffer them
+ -clip
+
+ -set sampleShape = "userPoly" otherwise the provided polygons will be buffered
+```{r }
+
+	library(sp)
+  set.seed(80)
+	samp50 = spsample(poly1a,50,type="hexagonal")
+	samp50df = SpatialPointsDataFrame(samp50,data.frame(ID=1:length(samp50),project="HoodCanal3in"))
+	samp50df_bfr100 = rgeos::gBuffer(samp50df,width=30,byid=T)
+	plot(poly1a)
+  plot(samp50df,add=T)
+  plot(samp50df_bfr100,add=T)
+  rgdal::writeOGR(samp50df_bfr100, dsn = "c:/temp" , layer="HC_samp50_bfr100",driver="ESRI Shapefile", overwrite_layer = T, morphToESRI= T)
+  
+	#single buffer and bring in existing points - process with R
+	cloud2xSample(
+		pathClipData = "c:/fusion/clipdata.exe"
+		,pathOutA = "d:/temp/hood_canal_test/clip3in/"
+		,pathOutB = "d:/temp/hood_canal_test/clip6in/"
+		,pathLasA = "D:/data/wa/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+		,pathLasB = "D:/data/wa/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+		,extentPolyA = poly1a
+		,extentPolyB = poly2a
+		,nCore = 3
+		,nSample = 150
+		,procMethod = "lidR"
+		#,radii = list( feet = c(FtTenthAc = 37.2 ))
+		,sampleShpA = "c:\\temp\\HC_samp50_bfr100.shp"
+		,sampleShape = "circle"# "userPoly"
+		,proj4A = "+proj=utm +zone=10 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+    ,proj4B = "+proj=utm +zone=10 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+  
+	)
+
+
+```
+
+# Approach #4 -> subtract ground
+ -build our own sample locations
+ -buffer them
+ -clip
+ -subtract ground
+ 
+ -set sampleShape = "userPoly" otherwise the provided polygons will be buffered
+```{r }
+
+	library(sp)
+  set.seed(80)
+	samp50 = spsample(poly1a,50,type="hexagonal")
+	samp50df = SpatialPointsDataFrame(samp50,data.frame(ID=1:length(samp50),project="HoodCanal3in"))
+	samp50df_bfr100 = rgeos::gBuffer(samp50df,width=30,byid=T)
+	plot(poly1a)
+  plot(samp50df,add=T)
+  plot(samp50df_bfr100,add=T)
+  rgdal::writeOGR(samp50df_bfr100, dsn = "c:/temp" , layer="HC_samp50_bfr100",driver="ESRI Shapefile", overwrite_layer = T, morphToESRI= T)
+  
+	#single buffer and bring in existing points - process with R
+	cloud2xSample(
+		pathClipData = "c:/fusion/clipdata.exe"
+		,pathOutA = "d:/temp/hood_canal_test/clip3in/"
+		,pathOutB = "d:/temp/hood_canal_test/clip6in/"
+		,pathLasA = "D:/data/wa/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+		,pathLasB = "D:/data/wa/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/"
+		,pathDTMA = "D:\\data\\WA\\wadnr_hood_canal\\hood_canal_dtm\\hood_canal_dtm.vrt"
+		,pathDTMB = "D:\\data\\WA\\wadnr_hood_canal\\hood_canal_dtm\\hood_canal_dtm.vrt"
+		,extentPolyA = poly1a
+		,extentPolyB = poly2a
+		,nCore = 3
+		,nSample = 150
+		,procMethod = "lidR"
+		#,radii = list( feet = c(FtTenthAc = 37.2 ))
+		,sampleShpA = "c:\\temp\\HC_samp50_bfr100.shp"
+		,sampleShape = "circle"# "userPoly"
+		,proj4A = "+proj=utm +zone=10 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+    ,proj4B = "+proj=utm +zone=10 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+  
+	)
+
+
+```
+
+
+# Approach #5 -> speedup with lax indices
+ -buld lastools lax indices
+ -build our own sample locations
+ -buffer them
+ -clip
+ -subtract ground
+ 
+ ##Note the native lastools function lasindex/lasindex64 is !MUCH! faster than lidR:::catalog_laxindex(...)
+ ## - yes that is a triple colon (:::) - catalog_laxindex is not an exported function, we have to get fancy to access the hidden function
+ -set sampleShape = "userPoly" otherwise the provided polygons will be buffered
+```{r }
+
+
+	#only run once, very slow
+	if(!file.exists("d:/data/WA/wadnr_hood_canal/las/hood_canal_12in_DSM_2015/area1_000_000.0_6.lax")){
+		library(future)
+		shell("C:\\lastools\\LAStools\\bin\\lasindex64 -i d:\\data\\WA\\wadnr_hood_canal\\las\\hood_canal_12in_DSM_2015\\*.las -cores 4 -dont_reindex", wait=T)
+	}
+  	#only run once, very slow
+	if(!file.exists("d:/data/WA/wadnr_hood_canal/las/hood_canal_6in_DSM_2015/area1_000_000.0_6.lax")){
+		shell("C:\\lastools\\LAStools\\bin\\lasindex64 -i d:\\data\\WA\\wadnr_hood_canal\\las\\hood_canal_6in_DSM_2015\\*.las -cores 4 -dont_reindex", wait=T)
+	}
+  	#only run once, very slow
+	if(!file.exists("d:/data/WA/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/Sub_Area_000_000.9_6.lax")){
+		shell("C:\\lastools\\LAStools\\bin\\lasindex64 -i d:\\data\\WA\\wadnr_hood_canal\\las\\hood_canal_3in_DSM_2015\\*.las -cores 4 -dont_reindex", wait=T)
+	}
+	library(sp)
+  set.seed(80)
+	samp50 = spsample(poly1a,50,type="hexagonal")
+	samp50df = SpatialPointsDataFrame(samp50,data.frame(ID=1:length(samp50),project="HoodCanal3in"))
+	samp50df_bfr100 = rgeos::gBuffer(samp50df,width=30,byid=T)
+	plot(poly1a)
+  plot(samp50df,add=T)
+  plot(samp50df_bfr100,add=T)
+  rgdal::writeOGR(samp50df_bfr100, dsn = "c:/temp" , layer="HC_samp50_bfr100",driver="ESRI Shapefile", overwrite_layer = T, morphToESRI= T)
+  
+	#single buffer and bring in existing points - process with R
+	cloud2xSample(
+		pathClipData = "c:/fusion/clipdata.exe"
+		,pathOutA = "d:/temp/hood_canal_test/clip12in/"
+		,pathOutB = "d:/temp/hood_canal_test/clip3in/"
+		,pathLasA = "d:/data/WA/wadnr_hood_canal/las/hood_canal_12in_DSM_2015"
+		,pathLasB = "D:/data/wa/wadnr_hood_canal/las/hood_canal_3in_DSM_2015/"
+		,pathDTMA = "D:\\data\\WA\\wadnr_hood_canal\\hood_canal_dtm\\hood_canal_dtm.vrt"
+		,pathDTMB = "D:\\data\\WA\\wadnr_hood_canal\\hood_canal_dtm\\hood_canal_dtm.vrt"
+		,extentPolyA = poly1a
+		,extentPolyB = poly2a
+		,nCore = 3
+		,nSample = 150
+		,procMethod = "lidR"
+		#,radii = list( feet = c(FtTenthAc = 37.2 ))
+		,sampleShpA = "c:\\temp\\HC_samp50_bfr100.shp"
+		,sampleShape = "circle"# "userPoly"
+		,proj4A = "+proj=utm +zone=10 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+    ,proj4B = "+proj=utm +zone=10 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+  
+	)
+
+
+```
