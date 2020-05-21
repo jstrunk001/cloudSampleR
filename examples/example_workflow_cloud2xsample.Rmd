@@ -318,7 +318,6 @@ output: html_document
   
   #reproject lidar dtms to match DAP projection
 	try(dir.create(dirname(out_dtm_tn_dap)))
-  las_dtm = raster::raster(out_dtm_tn_las)
   for(i in 1:length(files_dtm_tn_las)){
   	rasteri = raster::raster(files_dtm_tn_las[[i]])
   	outi = file.path(dir_proj,"Data\\Tennessee\\DTM_dap",basename(files_dtm_tn_las[[i]]))
