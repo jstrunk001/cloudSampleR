@@ -262,8 +262,8 @@ cloud2xSample=function(
   }
 
   #intersect extents
-  if(polyAExt) extInA = gIntersection(extentPolyA_in, extentPoly_in)
-  if(polyAB) extInA = gIntersection(extentPolyA_in, extentPolyB_in)
+  if(polyAExt) extInA = rgeos::gIntersection(extentPolyA_in, extentPoly_in)
+  if(polyAB) extInA = rgeos::gIntersection(extentPolyA_in, extentPolyB_in)
   if(polyAOnly) extInA = extentPolyA_in
   if(extOnly) extInA = extentPoly_in
 
@@ -327,11 +327,18 @@ cloud2xSample=function(
 
 
   #reproject spatial data for project B or extent - if necessary
+
+  proj4string(sInA) = proj4A
+  if(!is.null(extInA)) proj4string(extInA) = proj4A
+  proj4string(sInDFA) = proj4A
+  sInBuffA = lapply( sInBuffA , function(x,proj4){ proj4string(x) = proj4 ; x } , proj4A)
+
   if(polyAB){
     if(bad_proj & hasCRSPolyB){
+
       sInB = spTransform(sInA , sp::proj4string(extentPolyB_in))
-      extInB = spTransform(extInA , sp::proj4string(extentPolyB_in))
-      sInDFB = spTransform(sInBuffA , sp::proj4string(extentPolyB_in))
+      if(!is.null(extInA)) extInB = spTransform(extInA , sp::proj4string(extentPolyB_in))
+      sInDFB = spTransform(sInDFA , sp::proj4string(extentPolyB_in))
       sInBuffB = sapply(sInBuffA , spTransform, sp::proj4string(extentPolyB_in))
 
     }else{
@@ -345,8 +352,8 @@ cloud2xSample=function(
   if(polyAExt){
     if(bad_proj & hasProj4B){
       sInB = spTransform(sInA , proj4B)
-      extInB = spTransform(extInA , proj4B)
-      sInDFB = spTransform(sInBuffA , proj4B)
+      if(!is.null(extInA)) extInB = spTransform(extInA , proj4B)
+      sInDFB = spTransform(sInDFA , proj4B)
       sInBuffB = sapply(sInBuffA , spTransform, proj4B)
 
     }else{

@@ -249,3 +249,109 @@ output: html_document
 
 
 ```
+
+
+
+# Approach #6 incorporate projection differences (different dataset), clip slices instead
+ -buld lastools lax indices
+ -build our own sample locations
+ -buffer them
+ -clip
+ -subtract ground
+ 
+```{r }
+
+	library(lidR)
+	library(cloudSampleR)
+
+  dir_proj = "D:\\Box\\VMARS\\Projects\\DAP_evaluation_Meston"
+	dir_tn_dat = file.path(dir_proj,"Data\\Tennessee")
+	dir_tn_las = file.path(dir_proj,"Data\\Tennessee\\lidar_tiles")
+	dir_tn_dap = file.path(dir_proj,"Data\\Tennessee\\dap_tiles")
+	dir_tn_dtm_las = file.path(dir_proj,"Data\\Tennessee\\dtm")
+	dir_tn_dtm_dap = file.path(dir_proj,"Data\\Tennessee\\dtm_dap")
+	
+	#prepare lidar data
+	files_tn_las = list.files(dir_tn_las,pattern="[.]laz",full.names=T,recursive=T)
+	ctg_tn_las <- lidR::readLAScatalog(files_tn_las)
+	ctg_tn_las
+	plot(ctg_tn_las)
+	sp::proj4string(ctg_tn_las)
+	ply_tn_las = SpatialPolygons(ctg_tn_las@polygons)
+  df_ply_tn_las = SpatialPolygonsDataFrame(ply_tn_las,data.frame(files_tn_las))
+  border_las = buffer(df_ply_tn_las,5)
+  
+  #prepare dap data
+	files_tn_dap = list.files(dir_tn_dap,pattern="[.]laz",full.names=T,recursive=T)
+	ctg_tn_dap <- lidR::readLAScatalog(files_tn_dap)
+	ctg_tn_dap
+	raster::plot(ctg_tn_dap)
+	sp::proj4string(ctg_tn_dap)
+	
+	#extract polygon of tile extents
+	ply_tn_dap = SpatialPolygons(ctg_tn_dap@polygons)
+	df_ply_tn_dap = SpatialPolygonsDataFrame(ply_tn_dap,data.frame(files_tn_dap))
+	border_dap = buffer(df_ply_tn_dap,5)
+		
+	#fix bad proj4 string - correct zone is 16 NOT zone 19 ....
+	proj4string(df_ply_tn_dap) = "+proj=utm +zone=16 +ellps=GRS80 +units=m +no_defs"
+	
+	#sample lidar strips
+	set.seed(55)
+	samp_pts_tn = sp::spsample(ply_tn_las,100,"random")
+	
+	#build sample strips polygons - these are in the same projection as ctg_tn_las, the lidar data
+	xoff = 50
+	yoff = 2
+	strip_0 = SpatialPolygons(list(Polygons(list(Polygon(data.frame(x=c(-xoff,xoff,xoff,-xoff,-xoff),y=c(-yoff,-yoff,yoff,yoff,-yoff)))) , ID = 1)))
+	cds_samp = sp::coordinates(samp_pts_tn)
+	samp_strips = do.call(bind,mapply( raster::shift , dx=cds_samp[,1] , dy = cds_samp[,2] , MoreArgs = list(x=strip_0) ))
+	samp_strips_df = SpatialPolygonsDataFrame(samp_strips, data = data.frame(ID=1:nrow(cds_samp),cds_samp), match.ID = F)
+  plot(samp_strips_df,lwd=5,border="Red")
+  proj4string(samp_strips_df) = sp::proj4string(ctg_tn_dap)
+  rgdal::writeOGR(samp_strips_df, dsn="D:\\Box\\VMARS\\Projects\\DAP_evaluation_Meston\\R\\DAP_Lidar_analysis\\data",layer="tn_samp_ply.shp",driver="ESRI Shapefile",overwrite_layer = T)
+  
+  #build .vrt for lidar dtms - a virtual mosaic so that we can poitn to a single file
+  files_dtm_tn_las = list.files(dir_tn_dtm_las , pattern="[.]img",full.names=T,recursive=T)
+	out_dtm_tn_las = file.path(dir_tn_dtm_las,"tn_dtm.vrt")
+	if(!file.exists(out_dtm_tn_las)) gdalUtils::gdalbuildvrt( files_dtm_tn_las , out_dtm_tn_las)
+  
+  #reproject lidar dtms to match DAP projection
+	try(dir.create(dirname(out_dtm_tn_dap)))
+  las_dtm = raster::raster(out_dtm_tn_las)
+  for(i in 1:length(files_dtm_tn_las)){
+  	rasteri = raster::raster(files_dtm_tn_las[[i]])
+  	outi = file.path(dir_proj,"Data\\Tennessee\\DTM_dap",basename(files_dtm_tn_las[[i]]))
+  	if(!file.exists(outi))raster::projectRaster(from = rasteri, crs= CRS("+proj=utm +zone=16 +ellps=GRS80 +units=m +no_defs") , filename = outi)
+  }
+
+  #build .vrt for dap dtms - a virtual mosaic so that we can poitn to a single file
+  files_dtm_tn_dap = list.files(dir_tn_dtm_dap , pattern="[.]img$",full.names=T)
+  out_dtm_tn_dap = file.path(dir_proj,"Data\\Tennessee\\DTM_dap\\tn_dtm_dap.vrt")
+	if(!file.exists(out_dtm_tn_dap)) gdalUtils::gdalbuildvrt( files_dtm_tn_dap, out_dtm_tn_dap)
+  
+	#single buffer and bring in existing points - process with R
+	cloud2xSample(
+		pathClipData = "c:/fusion/clipdata.exe"
+		,pathOutA = "d:/temp/tennessee/clip_las/"
+		,pathOutB = "d:/temp/tennessee/clip_dap/"
+		,pathLasA = dir_tn_las
+		,pathLasB = dir_tn_dap
+		,pathDTMA = out_dtm_tn_las
+		,pathDTMB = out_dtm_tn_dap
+		,extentPolyA = border_las
+		,extentPolyB = border_dap
+		,nCore = 3
+		#,nSample = 100 #not used when argument is provided to sampleShpA
+		,procMethod = "lidR"
+		#,radii = list( feet = c(FtTenthAc = 37.2 )) #not used when sampleShape = "userPoly"
+		,sampleShpA = "D:\\Box\\VMARS\\Projects\\DAP_evaluation_Meston\\R\\DAP_Lidar_analysis\\data\\tn_samp_ply.shp"
+		,sampleShape = "userPoly"
+		,proj4A = 
+			"+proj=lcc +lat_1=36.41666666666666 +lat_2=35.25 +lat_0=34.33333333333334 +lon_0=-86 +x_0=600000 +y_0=0 +ellps=GRS80 +units=us-ft +vunits=us-ft +no_defs"
+    ,proj4B = "+proj=utm +zone=16 +ellps=GRS80 +units=m +no_defs"
+  
+	)
+
+
+```
